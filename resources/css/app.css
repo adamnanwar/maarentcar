@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/* Import Poppins Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Shadcn theme variables (keep for existing components) */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 248 95% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 248 95% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 248 95% 8%;
+    --primary: 244 82% 56%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 248 95% 8%;
+    --muted: 216 23% 60%;
+    --muted-foreground: 216 23% 60%;
+    --accent: 27 100% 61%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 216 36% 95%;
+    --input: 216 36% 95%;
+    --ring: 244 82% 56%;
+    --radius: 0.75rem;
+  }
+}
+
+@theme {
+  --font-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}

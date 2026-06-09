@@ -1,0 +1,272 @@
+# Claude Code Build Spec (TOML)
+# Project: Rental Mobil + Paket Wisata (Inertia Monolith)
+# Stack: Laravel 12 + Inertia.js (Vue 3) + Tailwind + shadcn-vue
+
+[meta]
+project_name = "rental-wisata-inertia"
+language = "id"
+architecture = "Monolith (Inertia)"
+notes = [
+  "Aplikasi Monolith: Vue frontend berada di dalam folder 'resources/js' Laravel.",
+  "Komunikasi Backend-Frontend menggunakan Inertia.js, BUKAN REST API.",
+  "Authentication menggunakan Laravel Session (bukan Token/Sanctum), kecuali untuk Webhook.",
+  "Flow: User Upload Dokumen -> Admin Validasi (Manual) -> User Bayar (Midtrans Snap)."
+]
+
+[stack]
+framework = "Laravel 12"
+frontend_adapter = "Inertia.js"
+ui_framework = "Vue 3 (Composition API)"
+css = "Tailwind CSS"
+components = "shadcn-vue"
+database = "PostgreSQL"
+payment = "Midtrans Snap"
+
+[deliverables]
+generate_code = true
+include_seed_data = true
+include_migrations = true
+include_readme = true
+
+[roles]
+roles = ["CUSTOMER", "ADMIN"]
+
+[business_rules]
+rules = [
+  "User harus login untuk booking.",
+  "Saat booking, status awal = PENDING_VERIFICATION.",
+  "User wajib upload KTP (dan SIM jika lepas kunci).",
+  "Admin memvalidasi dokumen di dashboard. Jika OK -> Status berubah jadi PENDING_PAYMENT.",
+  "Tombol 'Bayar Sekarang' hanya muncul jika status PENDING_PAYMENT.",
+  "Booking Paket Wisata bersifat bundling (Mobil + Paket).",
+  "Tidak ada chat, tidak ada rating, notifikasi via Database Notification (tampil di lonceng navbar)."
+]
+
+# =========================
+# FOLDER STRUCTURE (Monolith)
+# =========================
+[folders]
+structure = [
+  "app/Http/Controllers/ (Inertia Controllers)",
+  "app/Models/",
+  "database/migrations/",
+  "resources/js/Pages/ (Vue Pages)",
+  "resources/js/Components/ (Shared Components)",
+  "resources/js/Layouts/ (App Layouts)",
+  "routes/web.php (Main Routes)",
+  "routes/api.php (Only for Midtrans Webhook)"
+]
+
+# =========================
+# DATABASE MODEL
+# =========================
+
+[data_models]
+
+[data_models.User]
+table = "users"
+fields = [
+  { name = "id", type = "uuid", pk = true },
+  { name = "role", type = "string", default = "CUSTOMER" },
+  { name = "name", type = "string" },
+  { name = "email", type = "string", unique = true },
+  { name = "phone", type = "string" },
+  { name = "password", type = "string" },
+  { name = "created_at", type = "datetime" }
+]
+
+[data_models.Car]
+table = "cars"
+fields = [
+  { name = "id", type = "uuid", pk = true },
+  { name = "name", type = "string" },
+  { name = "brand", type = "string" },
+  { name = "type", type = "string" }, # MPV, SUV
+  { name = "transmission", type = "string" }, # Manual/Matic
+  { name = "seats", type = "int" },
+  { name = "price_per_day", type = "int" },
+  { name = "is_available", type = "bool", default = true },
+  { name = "image_url", type = "string", nullable = true },
+  { name = "created_at", type = "datetime" }
+]
+
+[data_models.TourPackage]
+table = "tour_packages"
+fields = [
+  { name = "id", type = "uuid", pk = true },
+  { name = "name", type = "string" },
+  { name = "price", type = "int" }, # Harga paket per orang/grup
+  { name = "duration_days", type = "int" },
+  { name = "description", type = "text" },
+  { name = "thumbnail_url", type = "string", nullable = true },
+  { name = "created_at", type = "datetime" }
+]
+
+[data_models.TourItinerary]
+table = "tour_itineraries"
+fields = [
+  { name = "id", type = "uuid", pk = true },
+  { name = "tour_package_id", type = "uuid", fk = "tour_packages.id" },
+  { name = "day_number", type = "int" },
+  { name = "activity", type = "string" },
+  { name = "time", type = "string" }
+]
+
+[data_models.Booking]
+table = "bookings"
+fields = [
+  { name = "id", type = "uuid", pk = true },
+  { name = "order_id", type = "string", unique = true },
+  { name = "user_id", type = "uuid", fk = "users.id" },
+  { name = "car_id", type = "uuid", fk = "cars.id" },
+  { name = "tour_package_id", type = "uuid", fk = "tour_packages.id", nullable = true },
+  
+  { name = "start_date", type = "date" },
+  { name = "end_date", type = "date" },
+  { name = "total_price", type = "int" },
+  
+  # Dokumen
+  { name = "ktp_image_url", type = "string" },
+  { name = "sim_image_url", type = "string", nullable = true },
+  { name = "admin_note", type = "text", nullable = true }, # Alasan reject/approve
+  
+  # Status Flow: PENDING_VERIFICATION -> PENDING_PAYMENT -> PAID -> COMPLETED
+  { name = "status", type = "string", default = "PENDING_VERIFICATION" },
+  { name = "payment_status", type = "string", default = "UNPAID" },
+  { name = "snap_token", type = "string", nullable = true },
+  
+  { name = "created_at", type = "datetime" }
+]
+
+# =========================
+# ROUTES & CONTROLLERS (Inertia)
+# =========================
+# Note: Ini adalah rute di web.php, return type adalah Inertia Response
+
+[routes]
+
+# --- Public Pages ---
+[[routes.web]]
+method = "GET"
+uri = "/"
+action = "HomeController@index"
+desc = "Landing page. Menampilkan featured cars & packages."
+
+[[routes.web]]
+method = "GET"
+uri = "/cars"
+action = "CarController@index"
+desc = "Katalog mobil. Menerima query params filter."
+
+[[routes.web]]
+method = "GET"
+uri = "/cars/{car}"
+action = "CarController@show"
+desc = "Detail mobil."
+
+[[routes.web]]
+method = "GET"
+uri = "/packages"
+action = "PackageController@index"
+desc = "Katalog paket wisata."
+
+[[routes.web]]
+method = "GET"
+uri = "/packages/{package}"
+action = "PackageController@show"
+desc = "Detail paket wisata."
+
+# --- Customer (Auth) ---
+[[routes.web]]
+method = "POST"
+uri = "/bookings"
+action = "BookingController@store"
+desc = "Simpan booking baru + Upload Dokumen. Redirect ke Dashboard."
+
+[[routes.web]]
+method = "GET"
+uri = "/dashboard"
+action = "DashboardController@index"
+desc = "User Dashboard. List booking saya & statusnya."
+
+[[routes.web]]
+method = "GET"
+uri = "/bookings/{booking}"
+action = "BookingController@show"
+desc = "Detail booking. Jika status PENDING_PAYMENT, tampilkan tombol Snap Pay."
+
+[[routes.web]]
+method = "POST"
+uri = "/bookings/{booking}/pay"
+action = "BookingController@createPayment"
+desc = "Generate Snap Token (jika belum ada) dan kirim ke frontend."
+
+# --- Admin (Auth + Middleware Admin) ---
+[[routes.web]]
+method = "GET"
+uri = "/admin/dashboard"
+action = "AdminDashboardController@index"
+desc = "Admin stats."
+
+[[routes.web]]
+method = "GET"
+uri = "/admin/validations"
+action = "AdminValidationController@index"
+desc = "List booking dengan status PENDING_VERIFICATION."
+
+[[routes.web]]
+method = "POST"
+uri = "/admin/validations/{booking}/decide"
+action = "AdminValidationController@update"
+desc = "Admin Approve/Reject dokumen. Jika Approve -> status jadi PENDING_PAYMENT."
+
+[[routes.web]]
+method = "RESOURCE"
+uri = "/admin/cars"
+action = "AdminCarController"
+desc = "CRUD Mobil."
+
+[[routes.web]]
+method = "RESOURCE"
+uri = "/admin/packages"
+action = "AdminPackageController"
+desc = "CRUD Paket Wisata."
+
+# --- API (Khusus Webhook) ---
+[[routes.api]]
+method = "POST"
+uri = "/midtrans/webhook"
+action = "PaymentController@webhook"
+desc = "Public endpoint untuk Midtrans notification. Disable CSRF untuk route ini."
+
+# =========================
+# CLAUDE CODE INSTRUCTIONS
+# =========================
+
+[claude_instructions]
+guidelines = [
+  "Gunakan Laravel 12 dengan starter kit 'Laravel Breeze' (Vue/Inertia flavor) atau setup manual Inertia.",
+  "Jangan buat REST API controller (kecuali PaymentController webhook). Gunakan Inertia::render untuk semua page.",
+  "Gunakan 'Ziggy' untuk routing di Vue (route('login')).",
+  "Setup Shadcn-vue dengan benar. Pastikan komponen UI ada di resources/js/Components/ui.",
+  "Validasi Dokumen: Pastikan file upload tersimpan di storage/app/public dan di-link (php artisan storage:link).",
+  "Midtrans: Pastikan route webhook dikecualikan dari CSRF protection di bootstrap/app.php.",
+  "Notifikasi: Gunakan $user->notify() simpan ke database, lalu share notifikasi ke Inertia via HandleInertiaRequests middleware (sebagai global props)."
+]
+
+steps_to_execute = [
+  "1. Setup Laravel project dengan Inertia + Vue + Tailwind.",
+  "2. Buat Migration & Model sesuai spesifikasi database.",
+  "3. Buat Middleware 'IsAdmin' untuk memproteksi route admin.",
+  "4. Implementasi CRUD Mobil & Paket Wisata (Admin).",
+  "5. Implementasi Flow Booking: User Upload -> Store DB (Pending Verif).",
+  "6. Implementasi Admin Validation: Tampilkan gambar KTP, tombol Valid/Invalid.",
+  "7. Implementasi Payment: Integrasi Midtrans Snap saat status Pending Payment.",
+  "8. Test flow lengkap dari User Booking sampai status PAID."
+]
+
+dont = [
+  "Jangan gunakan Vue Router (pakai file-based routing Laravel/Inertia).",
+  "Jangan gunakan Pinia/Vuex berlebihan jika data cukup dilempar dari Controller.",
+  "Jangan lupa validasi MIME type image saat upload dokumen."
+]
