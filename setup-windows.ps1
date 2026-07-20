@@ -22,11 +22,15 @@
 
 .NOTES
     - Jalankan sebagai Administrator (script akan minta elevasi otomatis kalau belum).
-    - Package manager yang dipakai: winget (bawaan Windows 10 versi 2004+ / Windows 11).
-      Kalau winget belum ada di mesin ini, script akan berhenti dan meminta Anda
-      meng-update "App Installer" dari Microsoft Store terlebih dahulu.
-    - Composer tidak punya package winget resmi, jadi dipasang lewat installer
-      resmi (Composer-Setup.exe) mengikuti cara yang direkomendasikan getcomposer.org.
+    - Package manager: winget dicoba dulu (bawaan Windows 10 versi 2004+ / Windows 11).
+      Kalau winget tidak ada, ATAU gagal jalan (mis. minta update "App Installer"
+      dari Microsoft Store), script otomatis beralih ke Chocolatey sebagai
+      alternatif - Chocolatey di-bootstrap sendiri lewat installer resmi
+      chocolatey.org (cukup HTTPS, tidak butuh Microsoft Store sama sekali).
+    - Composer tidak punya package winget/choco yang dipakai di sini, jadi
+      selalu dipasang lewat installer resmi (Composer-Setup.exe) mengikuti
+      cara yang direkomendasikan getcomposer.org - tidak tergantung package
+      manager mana pun.
 
 .USAGE
     Klik kanan file ini -> "Run with PowerShell", ATAU dari terminal:
@@ -47,18 +51,24 @@ $ProjectRoot = $PSScriptRoot
 $Config = @{
     NodeMinVersion   = [version]'20.0.0'
     NodeWingetId     = 'OpenJS.NodeJS.LTS'
+    NodeChocoId      = 'nodejs-lts'
 
     PhpMinVersion    = [version]'8.2.0'
     PhpWingetId      = 'PHP.PHP.8.3'
+    PhpChocoId       = 'php'
 
     ComposerMinVersion = [version]'2.2.0'
 
     PgMinMajor       = 15
     PgTargetMajor    = 16
     PgWingetId       = 'PostgreSQL.PostgreSQL.16'
+    PgChocoId        = 'postgresql16'
 
     PhpExtensions    = @('pdo_pgsql', 'pgsql', 'mbstring', 'openssl', 'fileinfo', 'curl', 'zip', 'gd', 'intl', 'bcmath')
 }
+
+# Diisi oleh Initialize-PackageManager: 'winget' atau 'choco'
+$script:PackageManager = $null
 
 # ============================================================================
 # Helper umum
@@ -96,26 +106,81 @@ function Update-SessionPath {
     $env:Path = @($machinePath, $userPath) -join ';'
 }
 
-function Assert-Winget {
-    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-        Write-Err 'winget tidak ditemukan di mesin ini.'
-        Write-Host '  Update dulu "App Installer" dari Microsoft Store, lalu jalankan ulang script ini:' -ForegroundColor Yellow
-        Write-Host '  https://apps.microsoft.com/detail/9nblggh4nns1' -ForegroundColor Yellow
+function Install-Chocolatey {
+    if (Get-Command choco -ErrorAction SilentlyContinue) { return }
+    Write-Info 'Memasang Chocolatey (package manager alternatif, cukup HTTPS - tidak butuh Microsoft Store)...'
+    Set-ExecutionPolicy Bypass -Scope Process -Force
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+    Update-SessionPath
+
+    if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+        Write-Err 'Gagal memasang Chocolatey. Cek koneksi internet lalu jalankan ulang script ini.'
         exit 1
+    }
+    Write-Ok "Chocolatey terpasang: $(choco --version)"
+}
+
+function Switch-ToChocolatey {
+    if ($script:PackageManager -eq 'choco') { return }
+    $script:PackageManager = 'choco'
+    Install-Chocolatey
+}
+
+function Initialize-PackageManager {
+    Write-Section 'Package Manager'
+
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        Write-Ok 'winget ditemukan, akan dicoba lebih dulu untuk tiap tool.'
+        Write-Info 'Kalau winget gagal jalan (mis. minta update App Installer), script otomatis beralih ke Chocolatey.'
+        $script:PackageManager = 'winget'
+    } else {
+        Write-Info 'winget tidak ditemukan di mesin ini, langsung memakai Chocolatey sebagai package manager.'
+        Switch-ToChocolatey
     }
 }
 
-function Invoke-WingetInstall([string]$WingetId, [string[]]$OverrideArgs) {
-    $args = @('install', '--id', $WingetId, '--silent', '--accept-package-agreements', '--accept-source-agreements', '--source', 'winget')
-    if ($OverrideArgs) {
-        $args += @('--override', ($OverrideArgs -join ' '))
+# Install satu package. $WingetOverrideArgs diteruskan ke installer asli lewat
+# `winget --override "..."`; $ChocoParams diteruskan lewat `choco --params "..."`
+# (format tiap package parameter beda-beda, sesuaikan saat manggil fungsi ini).
+function Install-Package([string]$WingetId, [string]$ChocoId, [string[]]$WingetOverrideArgs, [string[]]$ChocoParams) {
+    if ($script:PackageManager -eq 'winget') {
+        try {
+            $wingetArgs = @('install', '--id', $WingetId, '--silent', '--accept-package-agreements', '--accept-source-agreements', '--source', 'winget')
+            if ($WingetOverrideArgs) { $wingetArgs += @('--override', ($WingetOverrideArgs -join ' ')) }
+
+            & winget @wingetArgs
+            if ($LASTEXITCODE -ne 0) { throw "winget keluar dengan kode $LASTEXITCODE" }
+
+            Update-SessionPath
+            return
+        } catch {
+            Write-Info "winget gagal ($($_.Exception.Message)) - beralih ke Chocolatey untuk sisa proses setup..."
+            Switch-ToChocolatey
+        }
     }
-    & winget @args
+
+    $chocoArgs = @('install', $ChocoId, '-y', '--no-progress')
+    if ($ChocoParams) { $chocoArgs += @('--params', ($ChocoParams -join ' ')) }
+    & choco @chocoArgs
     Update-SessionPath
 }
 
-function Invoke-WingetUpgrade([string]$WingetId) {
-    & winget upgrade --id $WingetId --silent --accept-package-agreements --accept-source-agreements --source winget
+function Update-Package([string]$WingetId, [string]$ChocoId) {
+    if ($script:PackageManager -eq 'winget') {
+        try {
+            & winget upgrade --id $WingetId --silent --accept-package-agreements --accept-source-agreements --source winget
+            if ($LASTEXITCODE -ne 0) { throw "winget keluar dengan kode $LASTEXITCODE" }
+
+            Update-SessionPath
+            return
+        } catch {
+            Write-Info "winget gagal ($($_.Exception.Message)) - beralih ke Chocolatey untuk sisa proses setup..."
+            Switch-ToChocolatey
+        }
+    }
+
+    & choco upgrade $ChocoId -y --no-progress
     Update-SessionPath
 }
 
@@ -128,8 +193,9 @@ function Test-NodeSetup {
 
     $cmd = Get-Command node -ErrorAction SilentlyContinue
     if (-not $cmd) {
-        Write-Info "Node.js belum terpasang, menginstal $($Config.NodeWingetId)..."
-        Invoke-WingetInstall -WingetId $Config.NodeWingetId
+        Write-Info "Node.js belum terpasang, menginstal..."
+        Install-Package -WingetId $Config.NodeWingetId -ChocoId $Config.NodeChocoId
+        Update-SessionPath
         Write-Ok "Node.js terpasang: $(node -v)"
         return
     }
@@ -139,8 +205,7 @@ function Test-NodeSetup {
 
     if ($current -lt $Config.NodeMinVersion) {
         Write-Info "Node.js v$current lebih lawas dari minimum v$($Config.NodeMinVersion), meng-upgrade..."
-        Invoke-WingetUpgrade -WingetId $Config.NodeWingetId
-        Update-SessionPath
+        Update-Package -WingetId $Config.NodeWingetId -ChocoId $Config.NodeChocoId
         Write-Ok "Node.js sekarang: $(node -v)"
     } else {
         Write-Skip "Node.js v$current sudah memenuhi minimum v$($Config.NodeMinVersion)"
@@ -156,8 +221,9 @@ function Test-PhpSetup {
 
     $cmd = Get-Command php -ErrorAction SilentlyContinue
     if (-not $cmd) {
-        Write-Info "PHP belum terpasang, menginstal $($Config.PhpWingetId)..."
-        Invoke-WingetInstall -WingetId $Config.PhpWingetId
+        Write-Info "PHP belum terpasang, menginstal..."
+        Install-Package -WingetId $Config.PhpWingetId -ChocoId $Config.PhpChocoId
+        Update-SessionPath
         Write-Ok "PHP terpasang: $(php -r 'echo PHP_VERSION;')"
         return
     }
@@ -167,8 +233,7 @@ function Test-PhpSetup {
 
     if ($current -lt $Config.PhpMinVersion) {
         Write-Info "PHP $current lebih lawas dari minimum $($Config.PhpMinVersion), meng-upgrade..."
-        Invoke-WingetUpgrade -WingetId $Config.PhpWingetId
-        Update-SessionPath
+        Update-Package -WingetId $Config.PhpWingetId -ChocoId $Config.PhpChocoId
         Write-Ok "PHP sekarang: $(php -r 'echo PHP_VERSION;')"
     } else {
         Write-Skip "PHP $current sudah memenuhi minimum $($Config.PhpMinVersion)"
@@ -309,14 +374,17 @@ function Test-PostgresSetup {
 
     $cmd = Get-Command psql -ErrorAction SilentlyContinue
     if (-not $cmd) {
-        Write-Info "PostgreSQL belum terpasang, menginstal $($Config.PgWingetId) (port $dbPort, superuser password '$dbPass')..."
-        $overrides = @(
+        Write-Info "PostgreSQL belum terpasang, menginstal (port $dbPort, superuser password '$dbPass')..."
+        $wingetOverrides = @(
             '--mode unattended',
             '--unattendedmodeui minimal',
             "--superpassword $dbPass",
             "--serverport $dbPort"
         )
-        Invoke-WingetInstall -WingetId $Config.PgWingetId -OverrideArgs $overrides
+        # Format parameter package choco postgresql16 (community): /Password dan /Port.
+        $chocoParams = @("/Password:$dbPass", "/Port:$dbPort")
+
+        Install-Package -WingetId $Config.PgWingetId -ChocoId $Config.PgChocoId -WingetOverrideArgs $wingetOverrides -ChocoParams $chocoParams
 
         # Tambahkan bin dir Postgres secara eksplisit untuk sesi ini kalau belum ke-refresh dari registry
         $pgBin = Get-ChildItem 'C:\Program Files\PostgreSQL' -Directory -ErrorAction SilentlyContinue |
@@ -419,8 +487,8 @@ function Initialize-Project {
 # ============================================================================
 
 Assert-Admin
-Assert-Winget
 Update-SessionPath
+Initialize-PackageManager
 
 Write-Host ''
 Write-Host 'Setup We Rent Car - Windows 10' -ForegroundColor Magenta
