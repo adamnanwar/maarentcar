@@ -98,6 +98,28 @@ function Assert-Admin {
     }
 }
 
+function ConvertTo-VersionSafe {
+    # Sebagian tool (terutama Composer, dan PHP setelah ekstensi baru diaktifkan)
+    # kadang mencetak baris peringatan SEBELUM baris versi (mis. "Do not run
+    # Composer as root/superuser" - relevan karena script ini jalan sebagai
+    # Administrator). Kalau itu terjadi, PowerShell mengembalikan output
+    # sebagai System.Object[] (array baris), bukan string tunggal, sehingga
+    # `-replace` dan cast [version] langsung berikutnya akan gagal dengan
+    # error "Cannot convert System.Object[]...". Fungsi ini menggabungkan
+    # dulu semua baris jadi satu string lalu mengambil hanya angka versinya
+    # lewat regex, supaya aman dari banyak/sedikitnya baris output.
+    param(
+        [Parameter(Mandatory)][AllowNull()][object]$Output,
+        [Parameter(Mandatory)][string]$Pattern
+    )
+
+    $text = ($Output | Out-String)
+    if ($text -match $Pattern) {
+        try { return [version]$Matches[1] } catch { return $null }
+    }
+    return $null
+}
+
 function Update-SessionPath {
     # Menyusun ulang $env:Path dari registry Machine + User supaya tool yang
     # baru diinstal langsung terdeteksi tanpa perlu buka terminal baru.
@@ -200,8 +222,11 @@ function Test-NodeSetup {
         return
     }
 
-    $raw = (node -v) -replace '^v', ''
-    $current = [version]$raw
+    $current = ConvertTo-VersionSafe -Output (node -v) -Pattern 'v?(\d+\.\d+\.\d+)'
+    if (-not $current) {
+        Write-Err 'Tidak bisa membaca versi Node.js, lewati pengecekan upgrade.'
+        return
+    }
 
     if ($current -lt $Config.NodeMinVersion) {
         Write-Info "Node.js v$current lebih lawas dari minimum v$($Config.NodeMinVersion), meng-upgrade..."
@@ -228,8 +253,11 @@ function Test-PhpSetup {
         return
     }
 
-    $raw = (php -r 'echo PHP_VERSION;')
-    $current = [version]($raw -replace '-.*$', '')
+    $current = ConvertTo-VersionSafe -Output (php -r 'echo PHP_VERSION;') -Pattern '(\d+\.\d+\.\d+)'
+    if (-not $current) {
+        Write-Err 'Tidak bisa membaca versi PHP, lewati pengecekan upgrade.'
+        return
+    }
 
     if ($current -lt $Config.PhpMinVersion) {
         Write-Info "PHP $current lebih lawas dari minimum $($Config.PhpMinVersion), meng-upgrade..."
@@ -247,6 +275,18 @@ function Get-PhpIniPath {
         return $Matches[1].Trim()
     }
     return $null
+}
+
+function Get-PhpExtensionDir([string]$IniPath) {
+    $content = Get-Content -LiteralPath $IniPath
+    $match = $content | Select-String -Pattern '^\s*extension_dir\s*=\s*"?([^"]+)"?\s*$' | Select-Object -Last 1
+    if (-not $match) { return $null }
+
+    $dir = $match.Matches[0].Groups[1].Value.Trim()
+    if (-not [System.IO.Path]::IsPathRooted($dir)) {
+        $dir = Join-Path (Split-Path $IniPath -Parent) $dir
+    }
+    return $dir
 }
 
 function Set-PhpExtension([string]$IniPath, [string]$Extension) {
@@ -292,8 +332,20 @@ function Set-PhpConfiguration {
     }
     Write-Info "php.ini: $iniPath"
 
+    $extDir = Get-PhpExtensionDir -IniPath $iniPath
+
     $changed = $false
     foreach ($ext in $Config.PhpExtensions) {
+        # Kalau file DLL ekstensinya tidak ada di instalasi PHP ini, jangan
+        # dipaksa aktifkan - kalau tetap diaktifkan, SETIAP pemanggilan `php`
+        # berikutnya (termasuk lewat Composer, yang juga skrip PHP) akan
+        # mencetak "PHP Startup: Unable to load dynamic library ..." ke
+        # output, yang berpotensi merusak parsing versi tool lain.
+        if ($extDir -and -not (Test-Path (Join-Path $extDir "php_$ext.dll"))) {
+            Write-Err "Ekstensi '$ext' dilewati - file php_$ext.dll tidak ditemukan di $extDir (build PHP ini mungkin tidak menyertakannya)."
+            continue
+        }
+
         if (Set-PhpExtension -IniPath $iniPath -Extension $ext) {
             Write-Ok "Ekstensi diaktifkan: $ext"
             $changed = $true
@@ -335,8 +387,11 @@ function Test-ComposerSetup {
         return
     }
 
-    $raw = (composer --version) -replace '^Composer version (\S+).*$', '$1'
-    $current = [version]($raw -replace '-.*$', '')
+    $current = ConvertTo-VersionSafe -Output (composer --version) -Pattern 'Composer version (\d+\.\d+\.\d+)'
+    if (-not $current) {
+        Write-Err 'Tidak bisa membaca versi Composer, lewati pengecekan upgrade.'
+        return
+    }
 
     if ($current -lt $Config.ComposerMinVersion) {
         Write-Info "Composer $current lebih lawas dari minimum $($Config.ComposerMinVersion), menjalankan self-update..."
@@ -395,15 +450,15 @@ function Test-PostgresSetup {
         }
         Write-Ok "PostgreSQL terpasang: $(psql --version)"
     } else {
-        $raw = (psql --version) -replace '^psql \(PostgreSQL\) (\S+).*$', '$1'
-        $currentMajor = [int]($raw -split '\.')[0]
-
-        if ($currentMajor -lt $Config.PgMinMajor) {
-            Write-Err "PostgreSQL versi $raw lebih lawas dari minimum mayor $($Config.PgMinMajor)."
+        $current = ConvertTo-VersionSafe -Output (psql --version) -Pattern '\(PostgreSQL\)\s+(\d+\.\d+)'
+        if (-not $current) {
+            Write-Err 'Tidak bisa membaca versi PostgreSQL, lewati pengecekan versi mayor.'
+        } elseif ($current.Major -lt $Config.PgMinMajor) {
+            Write-Err "PostgreSQL versi $current lebih lawas dari minimum mayor $($Config.PgMinMajor)."
             Write-Info 'Upgrade versi MAYOR PostgreSQL tidak dilakukan otomatis oleh script ini karena berisiko terhadap data yang sudah ada.'
-            Write-Info "Silakan upgrade manual (pg_upgrade / dump-restore), atau lanjutkan pakai versi $raw kalau cukup untuk kebutuhan project."
+            Write-Info "Silakan upgrade manual (pg_upgrade / dump-restore), atau lanjutkan pakai versi $current kalau cukup untuk kebutuhan project."
         } else {
-            Write-Skip "PostgreSQL $raw sudah memenuhi minimum mayor $($Config.PgMinMajor)"
+            Write-Skip "PostgreSQL $current sudah memenuhi minimum mayor $($Config.PgMinMajor)"
         }
     }
 
