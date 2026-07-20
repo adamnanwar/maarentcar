@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequireAdmin;
-use App\Http\Middleware\RequireCustomer;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -23,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => RequireAdmin::class,
-            'customer' => RequireCustomer::class,
+            'permission' => EnsurePermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

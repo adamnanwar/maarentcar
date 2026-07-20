@@ -2,31 +2,41 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payment extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory;
+
+    const STATUS_MENUNGGU = 'menunggu';
+    const STATUS_TERVERIFIKASI = 'terverifikasi';
+    const STATUS_DITOLAK = 'ditolak';
 
     protected $fillable = [
         'booking_id',
-        'order_id',
+        'amount',
+        'bank_sender_name',
+        'bank_sender_account',
+        'proof_path',
         'status',
-        'method',
-        'gross_amount',
-        'midtrans_transaction_id',
-        'raw_notification',
+        'paid_at',
     ];
 
     protected $casts = [
-        'raw_notification' => 'array',
-        'gross_amount' => 'integer',
+        'amount' => 'decimal:2',
+        'paid_at' => 'datetime',
     ];
 
-    public function booking()
+    public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class);
+    }
+
+    public function verifications(): HasMany
+    {
+        return $this->hasMany(PaymentVerification::class);
     }
 }

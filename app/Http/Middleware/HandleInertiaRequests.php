@@ -35,19 +35,22 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'role' => $request->user()->role,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'role' => $user->role?->name,
                 ] : null,
             ],
-            'notifications' => fn () => $request->user()
-                ? $request->user()->unreadNotifications()->latest()->take(10)->get()->map(fn ($notification) => [
+            'notifications' => fn () => $user
+                ? $user->unreadNotifications()->latest()->take(10)->get()->map(fn ($notification) => [
                     'id' => $notification->id,
                     'type' => $notification->data['type'] ?? 'info',
                     'message' => $notification->data['message'] ?? '',
@@ -58,7 +61,6 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
-                'snap_token' => fn () => $request->session()->get('snap_token'),
             ],
         ];
     }

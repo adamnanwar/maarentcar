@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -8,8 +7,7 @@ use Illuminate\Support\Facades\Route;
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Khusus untuk Midtrans Webhook (public, no CSRF protection)
+| Saat ini belum ada endpoint API publik. We Rent Car v1 memakai transfer
+| bank manual (bukan payment gateway), sehingga tidak ada webhook.
 |
 */
-
-Route::post('/midtrans/webhook', [PaymentController::class, 'webhook']);

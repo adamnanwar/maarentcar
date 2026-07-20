@@ -3,99 +3,51 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Notifications\PaymentSuccessNotification;
+use App\Models\Payment;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaymentController extends Controller
 {
-    /**
-     * Handle Midtrans webhook notification
-     */
-    public function webhook(Request $request)
+    public function store(Request $request, Booking $booking): RedirectResponse
     {
-        // Get notification data
-        $notificationBody = $request->all();
+        abort_unless($booking->user_id === $request->user()->id, 403);
+        abort_unless($booking->status === Booking::STATUS_MENUNGGU_PEMBAYARAN, 403, 'Booking ini tidak dalam status menunggu pembayaran.');
 
-        Log::info('Midtrans Webhook Received', $notificationBody);
+        $data = $request->validate([
+            'bank_sender_name' => ['nullable', 'string', 'max:150'],
+            'bank_sender_account' => ['nullable', 'string', 'max:50'],
+            'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ]);
 
-        // Verify signature
-        $orderId = $notificationBody['order_id'] ?? null;
-        $statusCode = $notificationBody['status_code'] ?? null;
-        $grossAmount = $notificationBody['gross_amount'] ?? null;
-        $serverKey = config('midtrans.server_key');
-        $signatureKey = $notificationBody['signature_key'] ?? null;
+        $path = $request->file('proof')->store("payment-proofs/{$booking->id}", 'local');
 
-        $expectedSignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
+        $booking->payments()->create([
+            'amount' => $booking->total_price,
+            'bank_sender_name' => $data['bank_sender_name'] ?? null,
+            'bank_sender_account' => $data['bank_sender_account'] ?? null,
+            'proof_path' => $path,
+            'status' => Payment::STATUS_MENUNGGU,
+            'paid_at' => now(),
+        ]);
 
-        if ($signatureKey !== $expectedSignature) {
-            Log::warning('Midtrans Webhook: Invalid signature', [
-                'order_id' => $orderId,
-                'expected' => $expectedSignature,
-                'received' => $signatureKey,
-            ]);
-            return response()->json(['message' => 'Invalid signature'], 403);
-        }
+        $booking->transitionTo(Booking::STATUS_MENUNGGU_VERIFIKASI, $request->user(), 'Bukti transfer diunggah oleh pelanggan.');
 
-        // Find booking
-        $booking = Booking::where('order_id', $orderId)->first();
-
-        if (!$booking) {
-            Log::warning('Midtrans Webhook: Booking not found', ['order_id' => $orderId]);
-            return response()->json(['message' => 'Booking not found'], 404);
-        }
-
-        // Check if already processed (idempotency)
-        if ($booking->status === Booking::STATUS_PAID) {
-            Log::info('Midtrans Webhook: Payment already processed', ['order_id' => $orderId]);
-            return response()->json(['message' => 'Already processed']);
-        }
-
-        // Process based on transaction status
-        $transactionStatus = $notificationBody['transaction_status'] ?? null;
-        $fraudStatus = $notificationBody['fraud_status'] ?? null;
-
-        if ($transactionStatus === 'capture') {
-            if ($fraudStatus === 'accept') {
-                $this->handlePaymentSuccess($booking, $notificationBody);
-            } elseif ($fraudStatus === 'challenge') {
-                // Payment needs review - keep status as pending payment
-                Log::info('Midtrans Webhook: Payment challenged', ['order_id' => $orderId]);
-            }
-        } elseif ($transactionStatus === 'settlement') {
-            $this->handlePaymentSuccess($booking, $notificationBody);
-        } elseif ($transactionStatus === 'pending') {
-            // Keep status as PENDING_PAYMENT
-            Log::info('Midtrans Webhook: Payment pending', ['order_id' => $orderId]);
-        } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
-            $booking->update([
-                'status' => Booking::STATUS_CANCELLED,
-            ]);
-            Log::info('Midtrans Webhook: Payment failed/expired', [
-                'order_id' => $orderId,
-                'status' => $transactionStatus,
-            ]);
-        }
-
-        return response()->json(['message' => 'OK']);
+        return back()->with('success', 'Bukti transfer berhasil diunggah, kami akan verifikasi dalam 1x24 jam.');
     }
 
-    /**
-     * Handle successful payment
-     */
-    private function handlePaymentSuccess(Booking $booking, array $notificationBody): void
+    public function showProof(Request $request, Booking $booking, Payment $payment): StreamedResponse
     {
-        $booking->update([
-            'status' => Booking::STATUS_PAID,
-        ]);
+        abort_unless($payment->booking_id === $booking->id, 404);
 
-        // Notify user
-        $booking->load('user');
-        $booking->user->notify(new PaymentSuccessNotification($booking));
+        $user = $request->user();
+        $isOwner = $booking->user_id === $user->id;
+        abort_unless($isOwner || $user->isAdminOrStaff(), 403);
 
-        Log::info('Midtrans Webhook: Payment successful', [
-            'order_id' => $booking->order_id,
-            'amount' => $notificationBody['gross_amount'] ?? 0,
-        ]);
+        abort_unless(Storage::disk('local')->exists($payment->proof_path), 404);
+
+        return Storage::disk('local')->response($payment->proof_path);
     }
 }

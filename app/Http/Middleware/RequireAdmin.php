@@ -9,7 +9,8 @@ use Symfony\Component\HttpFoundation\Response;
 class RequireAdmin
 {
     /**
-     * Handle an incoming request.
+     * Allows entry to the /admin area for admin and staff roles.
+     * Action-level restrictions are enforced separately via the `permission` middleware.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
@@ -19,7 +20,7 @@ class RequireAdmin
             return redirect()->route('login');
         }
 
-        if ($request->user()->role !== 'ADMIN') {
+        if (! $request->user()->isAdminOrStaff()) {
             return redirect()->route('home')->with('error', 'Anda tidak memiliki akses ke halaman ini.');
         }
 

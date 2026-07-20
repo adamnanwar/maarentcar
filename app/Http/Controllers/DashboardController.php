@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Booking;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -11,20 +10,20 @@ class DashboardController extends Controller
 {
     public function index(Request $request): Response
     {
-        $bookings = $request->user()
-            ->bookings()
-            ->with(['car', 'tourPackage'])
-            ->orderBy('created_at', 'desc')
+        $user = $request->user();
+
+        $bookings = $user->bookings()
+            ->with(['vehicle', 'package'])
+            ->latest()
+            ->take(5)
             ->get();
 
         return Inertia::render('Dashboard', [
-            'bookings' => $bookings,
+            'recentBookings' => $bookings,
             'stats' => [
-                'total' => $bookings->count(),
-                'pending_verification' => $bookings->where('status', Booking::STATUS_PENDING_VERIFICATION)->count(),
-                'pending_payment' => $bookings->where('status', Booking::STATUS_PENDING_PAYMENT)->count(),
-                'paid' => $bookings->where('status', Booking::STATUS_PAID)->count(),
-                'completed' => $bookings->where('status', Booking::STATUS_COMPLETED)->count(),
+                'total_bookings' => $user->bookings()->count(),
+                'active_bookings' => $user->bookings()->whereIn('status', ['menunggu_pembayaran', 'menunggu_verifikasi', 'dikonfirmasi', 'berlangsung'])->count(),
+                'completed_bookings' => $user->bookings()->where('status', 'selesai')->count(),
             ],
         ]);
     }
