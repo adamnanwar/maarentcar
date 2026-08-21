@@ -112,7 +112,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::resource('destinasi', AdminDestinationController::class)->except('show');
 
-    Route::resource('paket-wisata', AdminTourPackageController::class)->except('show');
+    Route::resource('paket-wisata', AdminTourPackageController::class)
+        ->parameters(['paket-wisata' => 'paket_wisata'])
+        ->except('show');
 
     Route::get('/booking', [AdminBookingController::class, 'index'])->name('booking.index');
     Route::get('/booking/{booking}', [AdminBookingController::class, 'show'])->name('booking.show');

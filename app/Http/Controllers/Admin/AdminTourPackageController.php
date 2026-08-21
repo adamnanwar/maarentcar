@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\DeletesPublicStorageFile;
 use App\Http\Controllers\Controller;
 use App\Models\Destination;
 use App\Models\TourPackage;
@@ -17,6 +18,8 @@ use Inertia\Response;
 
 class AdminTourPackageController extends Controller implements HasMiddleware
 {
+    use DeletesPublicStorageFile;
+
     public static function middleware(): array
     {
         return [
@@ -84,6 +87,8 @@ class AdminTourPackageController extends Controller implements HasMiddleware
         unset($data['destination_ids']);
 
         if ($request->hasFile('image')) {
+            $this->deletePublicFile($paket_wisata->image_path);
+
             $data['image_path'] = Storage::disk('public')->url(
                 $request->file('image')->store('tour-packages', 'public')
             );

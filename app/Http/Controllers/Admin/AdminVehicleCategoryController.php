@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\DeletesPublicStorageFile;
 use App\Http\Controllers\Controller;
 use App\Models\VehicleCategory;
 use Illuminate\Http\RedirectResponse;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class AdminVehicleCategoryController extends Controller implements HasMiddleware
 {
+    use DeletesPublicStorageFile;
+
     public static function middleware(): array
     {
         return [
@@ -68,6 +71,8 @@ class AdminVehicleCategoryController extends Controller implements HasMiddleware
         $data = $this->validated($request, $kategori_mobil->id);
 
         if ($request->hasFile('icon')) {
+            $this->deletePublicFile($kategori_mobil->icon_path);
+
             $data['icon_path'] = Storage::disk('public')->url(
                 $request->file('icon')->store('vehicle-categories', 'public')
             );

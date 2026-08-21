@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\DeletesPublicStorageFile;
 use App\Http\Controllers\Controller;
 use App\Models\Vehicle;
 use App\Models\VehicleCategory;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class AdminVehicleController extends Controller
 {
+    use DeletesPublicStorageFile;
+
     public function index(Request $request): Response
     {
         $query = Vehicle::query()->with(['category', 'images']);
@@ -84,7 +87,14 @@ class AdminVehicleController extends Controller
     {
         abort_unless($image->vehicle_id === $mobil->id, 404);
 
+        $wasPrimary = $image->is_primary;
+
+        $this->deletePublicFile($image->image_path);
         $image->delete();
+
+        if ($wasPrimary) {
+            $mobil->images()->oldest('sort_order')->first()?->update(['is_primary' => true]);
+        }
 
         return back()->with('success', 'Foto berhasil dihapus.');
     }

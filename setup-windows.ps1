@@ -310,6 +310,55 @@ function Set-PhpExtension([string]$IniPath, [string]$Extension) {
     return $true
 }
 
+function Disable-PhpExtension([string]$IniPath, [string]$Extension) {
+    $content = Get-Content -LiteralPath $IniPath
+    $pattern = "^\s*extension\s*=\s*(php_)?$Extension(\.dll)?\s*$"
+    if ($content -match $pattern) {
+        $content = $content -replace $pattern, ";extension=$Extension"
+        Set-Content -LiteralPath $IniPath -Value $content
+    }
+}
+
+function Get-PhpStartupWarnings {
+    # PHP CLI mencetak "PHP Warning: PHP Startup: Unable to load dynamic
+    # library ..." ke STDERR. Supaya bisa dibaca tanpa memicu
+    # NativeCommandError yang terminating gara-gara $ErrorActionPreference =
+    # 'Stop' di scope global, preference-nya diturunkan sementara khusus di
+    # sekitar panggilan native ini saja, lalu dikembalikan seperti semula.
+    $prevPref = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        return (php -v 2>&1 | Out-String)
+    } finally {
+        $ErrorActionPreference = $prevPref
+    }
+}
+
+function Test-PhpExtensionsCanLoad([string]$IniPath) {
+    # Dipanggil setiap kali selesai mengubah php.ini (baik ada ekstensi baru
+    # yang diaktifkan atau tidak), supaya ekstensi yang GAGAL dimuat - baik
+    # yang baru saja diaktifkan maupun yang sudah aktif dari sebelumnya
+    # (mis. karena file DLL dependency-nya hilang/tidak cocok setelah PHP
+    # pernah di-upgrade) - otomatis dinonaktifkan lagi. Tanpa ini, ekstensi
+    # yang rusak akan terus mencemari output SETIAP pemanggilan `php`
+    # berikutnya (termasuk lewat Composer), yang berpotensi merusak parsing
+    # versi tool lain lagi.
+    $startupOutput = Get-PhpStartupWarnings
+    $failedExtensions = [regex]::Matches($startupOutput, "Unable to load dynamic library '(?:php_)?([a-zA-Z0-9_]+)(?:\.dll)?'") |
+        ForEach-Object { $_.Groups[1].Value } | Select-Object -Unique
+
+    if (-not $failedExtensions) {
+        Write-Ok 'Semua ekstensi PHP yang aktif berhasil dimuat tanpa error.'
+        return
+    }
+
+    foreach ($failed in $failedExtensions) {
+        Write-Err "Ekstensi '$failed' gagal dimuat PHP (DLL ada tapi tidak bisa jalan - biasanya dependency-nya hilang/tidak cocok, sering terjadi kalau PHP pernah di-upgrade tanpa membersihkan file lama). Dinonaktifkan lagi otomatis."
+        Disable-PhpExtension -IniPath $IniPath -Extension $failed
+    }
+    Write-Info 'Kalau ekstensi di atas memang dibutuhkan, cara paling aman adalah uninstall PHP lalu install ulang bersih (bukan upgrade) - biasanya masalah ini muncul karena file lama tercampur dengan versi baru.'
+}
+
 function Set-PhpIniValue([string]$IniPath, [string]$Key, [string]$Value) {
     $content = Get-Content -LiteralPath $IniPath
     $pattern = "^\s*;?\s*$Key\s*=.*$"
@@ -366,6 +415,8 @@ function Set-PhpConfiguration {
     if ($changed) {
         Write-Info 'Ada ekstensi baru diaktifkan - pastikan tidak ada proses "php artisan serve" lama yang masih jalan (perlu direstart untuk baca ulang php.ini).'
     }
+
+    Test-PhpExtensionsCanLoad -IniPath $iniPath
 }
 
 # ============================================================================

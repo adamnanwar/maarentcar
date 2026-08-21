@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\DeletesPublicStorageFile;
 use App\Http\Controllers\Controller;
 use App\Models\Destination;
 use Illuminate\Http\RedirectResponse;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class AdminDestinationController extends Controller implements HasMiddleware
 {
+    use DeletesPublicStorageFile;
+
     public static function middleware(): array
     {
         return [
@@ -68,6 +71,8 @@ class AdminDestinationController extends Controller implements HasMiddleware
         $data = $this->validated($request, $destinasi->id);
 
         if ($request->hasFile('image')) {
+            $this->deletePublicFile($destinasi->image_path);
+
             $data['image_path'] = Storage::disk('public')->url(
                 $request->file('image')->store('destinations', 'public')
             );
