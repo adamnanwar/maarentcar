@@ -118,15 +118,8 @@ function initials(name: string) {
                 </div>
                 <div class="relative flex min-h-[320px] items-center justify-center lg:min-h-[420px]">
                     <div class="absolute inset-0 scale-125 rounded-full bg-secondary opacity-70 blur-3xl" />
-                    <div
-                        v-if="featuredVehicles[0]?.images?.[0]"
-                        class="relative z-10 aspect-video w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-background"
-                    >
-                        <img
-                            :src="featuredVehicles[0].images[0].image_path"
-                            :alt="featuredVehicles[0].name"
-                            class="h-full w-full object-cover"
-                        />
+                    <div class="relative z-10 aspect-video w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-background">
+                        <img src="/imagebahan/avanza.jpeg" alt="We Rent Car" class="h-full w-full object-cover" />
                     </div>
                 </div>
             </div>
