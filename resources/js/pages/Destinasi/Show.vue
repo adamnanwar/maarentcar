@@ -11,7 +11,7 @@ interface Destination {
     address: string | null;
     image_path: string | null;
     addon_price: number;
-    tourPackages: { id: number; name: string; slug: string; price: number }[];
+    tour_packages: { id: number; name: string; slug: string; price: number }[];
 }
 
 defineProps<{ destination: Destination }>();
@@ -31,11 +31,11 @@ defineProps<{ destination: Destination }>();
             <p v-if="destination.address" class="mt-2 text-sm text-muted-foreground">{{ destination.address }}</p>
             <p class="mt-6 text-muted-foreground">{{ destination.description }}</p>
 
-            <div v-if="destination.tourPackages.length" class="mt-10">
+            <div v-if="destination.tour_packages.length" class="mt-10">
                 <h2 class="text-xl font-bold text-foreground">Paket Wisata Terkait</h2>
                 <div class="mt-4 grid gap-4 sm:grid-cols-2">
                     <Link
-                        v-for="pkg in destination.tourPackages"
+                        v-for="pkg in destination.tour_packages"
                         :key="pkg.id"
                         :href="`/paket-wisata/${pkg.slug}`"
                         class="rounded-xl border border-border p-4 transition-colors hover:border-primary"

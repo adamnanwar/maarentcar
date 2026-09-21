@@ -14,7 +14,7 @@ import { Mail, MapPin, Phone } from 'lucide-vue-next';
             <div class="mt-8 space-y-4 rounded-xl border border-border bg-background p-6">
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-primary"><Phone class="h-5 w-5" /></div>
-                    <span>+62 812-0000-0000 (WhatsApp)</span>
+                    <span>+62 821-7082-9433 (WhatsApp)</span>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-primary"><Mail class="h-5 w-5" /></div>
@@ -22,7 +22,7 @@ import { Mail, MapPin, Phone } from 'lucide-vue-next';
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-primary"><MapPin class="h-5 w-5" /></div>
-                    <span>Batam Centre, Kota Batam, Kepulauan Riau</span>
+                    <span>Perum, Jl. Sarmen Raya Blk. B No.03, Tj. Buntung, Kec. Bengkong, Kota Batam, Kepulauan Riau 29457</span>
                 </div>
             </div>
         </div>

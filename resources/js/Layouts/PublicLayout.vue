@@ -3,7 +3,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { Button } from '@/components/ui/button';
 import type { AppPageProps } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Menu, X } from 'lucide-vue-next';
+import { Mail, MapPin, Menu, Phone, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 const page = usePage<AppPageProps>();
@@ -49,7 +49,10 @@ function logout() {
     <div class="flex min-h-screen flex-col bg-background text-foreground">
         <header class="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
             <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                <Link href="/" class="text-lg font-bold text-primary">We Rent Car</Link>
+                <Link href="/" class="flex items-center gap-2 text-lg font-bold text-primary">
+                    <img src="/logo.png" alt="We Rent Car" class="h-10 w-auto" />
+                    <span>We Rent Car</span>
+                </Link>
 
                 <nav class="hidden items-center gap-6 md:flex">
                     <Link
@@ -130,7 +133,19 @@ function logout() {
                 </div>
                 <div>
                     <p class="mb-2 font-semibold">Kontak</p>
-                    <ul class="space-y-1 text-sm text-muted-foreground">
+                    <ul class="space-y-2 text-sm text-muted-foreground">
+                        <li class="flex items-start gap-2">
+                            <MapPin class="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                            <span>Perum, Jl. Sarmen Raya Blk. B No.03, Tj. Buntung, Kec. Bengkong, Kota Batam, Kepulauan Riau 29457</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <Phone class="h-4 w-4 shrink-0 text-primary" />
+                            <a href="tel:+6282170829433" class="hover:text-primary">+62 821-7082-9433</a>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <Mail class="h-4 w-4 shrink-0 text-primary" />
+                            <a href="mailto:info@werentcar.com" class="hover:text-primary">info@werentcar.com</a>
+                        </li>
                         <li><Link href="/kontak" class="hover:text-primary">Hubungi Kami</Link></li>
                         <li><Link href="/tentang-kami" class="hover:text-primary">Tentang Kami</Link></li>
                     </ul>

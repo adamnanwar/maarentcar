@@ -33,11 +33,16 @@ const missionPoints = [
                         Dengan armada yang terawat, harga transparan, dan proses booking yang mudah, kami berkomitmen menjadi mitra perjalanan
                         terpercaya Anda selama berada di Batam.
                     </p>
+                    <p class="mt-4 text-muted-foreground">
+                        Sejak berdiri lebih dari 5 tahun lalu, We Rent Car telah dipercaya oleh ratusan pelanggan dari berbagai kalangan di
+                        seluruh Kota Batam — mulai dari wisatawan, pelaku bisnis, hingga keluarga yang membutuhkan kendaraan andal untuk
+                        aktivitas sehari-hari.
+                    </p>
                 </div>
                 <div class="relative flex min-h-[280px] items-center justify-center">
                     <div class="absolute inset-0 scale-125 rounded-full bg-secondary opacity-70 blur-3xl" />
-                    <div class="relative z-10 flex aspect-video w-full items-center justify-center rounded-2xl border border-border bg-card">
-                        <Car class="h-20 w-20 text-primary" />
+                    <div class="relative z-10 flex aspect-video w-full items-center justify-center rounded-2xl border border-border bg-card p-10">
+                        <img src="/logo.png" alt="We Rent Car" class="h-40 w-auto object-contain" />
                     </div>
                 </div>
             </div>
