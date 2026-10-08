@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\BookingRentalReminderNotification;
 use App\Notifications\BookingStatusChangedNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -40,6 +41,7 @@ class Booking extends Model
         'with_driver',
         'delivery_method',
         'pickup_address_snapshot',
+        'ktp_photo_path',
         'passenger_count',
         'base_price',
         'driver_fee',
@@ -48,6 +50,10 @@ class Booking extends Model
         'discount',
         'total_price',
         'status',
+        'payment_due_at',
+        'notified_start_at',
+        'notified_ending_soon_at',
+        'notified_return_reminder_at',
         'notes',
         'internal_notes',
     ];
@@ -65,6 +71,10 @@ class Booking extends Model
         'addon_total' => 'decimal:2',
         'discount' => 'decimal:2',
         'total_price' => 'decimal:2',
+        'payment_due_at' => 'datetime',
+        'notified_start_at' => 'datetime',
+        'notified_ending_soon_at' => 'datetime',
+        'notified_return_reminder_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -127,6 +137,112 @@ class Booking extends Model
             self::STATUS_MENUNGGU_PEMBAYARAN,
             self::STATUS_MENUNGGU_VERIFIKASI,
         ]);
+    }
+
+    /**
+     * Status yang dianggap "masih aktif" untuk keperluan pembatasan
+     * (mis. 1 booking mobil aktif per pelanggan).
+     */
+    public static function activeStatuses(): array
+    {
+        return [
+            self::STATUS_MENUNGGU_PEMBAYARAN,
+            self::STATUS_MENUNGGU_VERIFIKASI,
+            self::STATUS_DIKONFIRMASI,
+            self::STATUS_BERLANGSUNG,
+        ];
+    }
+
+    public function isPaymentOverdue(): bool
+    {
+        return $this->status === self::STATUS_MENUNGGU_PEMBAYARAN
+            && $this->payment_due_at !== null
+            && $this->payment_due_at->isPast();
+    }
+
+    /**
+     * Batalkan booking ini secara otomatis apabila batas waktu 1 jam
+     * pembayaran sudah lewat dan pelanggan belum mengunggah bukti transfer.
+     */
+    public function expireIfOverdue(): bool
+    {
+        if (! $this->isPaymentOverdue()) {
+            return false;
+        }
+
+        $this->transitionTo(
+            self::STATUS_DIBATALKAN,
+            null,
+            'Dibatalkan otomatis oleh sistem karena batas waktu pembayaran 1 jam telah lewat.',
+            'Pesanan '.$this->booking_code.' dibatalkan otomatis karena tidak ada pembayaran dalam waktu 1 jam.'
+        );
+
+        return true;
+    }
+
+    /**
+     * Sapu seluruh booking yang masih "menunggu pembayaran" namun sudah
+     * melewati batas waktu 1 jam, lalu batalkan secara otomatis.
+     */
+    public static function sweepOverduePayments(): int
+    {
+        $expired = static::query()
+            ->where('status', self::STATUS_MENUNGGU_PEMBAYARAN)
+            ->whereNotNull('payment_due_at')
+            ->where('payment_due_at', '<', now())
+            ->get();
+
+        foreach ($expired as $booking) {
+            $booking->expireIfOverdue();
+        }
+
+        return $expired->count();
+    }
+
+    /**
+     * Kirim notifikasi masa sewa: dimulai hari ini, akan segera berakhir,
+     * dan pengingat mengembalikan mobil apabila sudah lewat waktu tapi
+     * belum ditandai selesai oleh admin. Aman dipanggil berkali-kali
+     * karena masing-masing jenis hanya dikirim sekali per booking.
+     */
+    public static function sweepRentalReminders(): int
+    {
+        $sent = 0;
+
+        static::query()
+            ->whereIn('status', [self::STATUS_DIKONFIRMASI, self::STATUS_BERLANGSUNG])
+            ->whereNull('notified_start_at')
+            ->where('start_datetime', '<=', now())
+            ->get()
+            ->each(function (self $booking) use (&$sent) {
+                $booking->user->notify(new BookingRentalReminderNotification($booking, BookingRentalReminderNotification::REMINDER_START));
+                $booking->update(['notified_start_at' => now()]);
+                $sent++;
+            });
+
+        static::query()
+            ->where('status', self::STATUS_BERLANGSUNG)
+            ->whereNull('notified_ending_soon_at')
+            ->whereBetween('end_datetime', [now(), now()->addHours(3)])
+            ->get()
+            ->each(function (self $booking) use (&$sent) {
+                $booking->user->notify(new BookingRentalReminderNotification($booking, BookingRentalReminderNotification::REMINDER_ENDING_SOON));
+                $booking->update(['notified_ending_soon_at' => now()]);
+                $sent++;
+            });
+
+        static::query()
+            ->where('status', self::STATUS_BERLANGSUNG)
+            ->whereNull('notified_return_reminder_at')
+            ->where('end_datetime', '<', now())
+            ->get()
+            ->each(function (self $booking) use (&$sent) {
+                $booking->user->notify(new BookingRentalReminderNotification($booking, BookingRentalReminderNotification::REMINDER_RETURN));
+                $booking->update(['notified_return_reminder_at' => now()]);
+                $sent++;
+            });
+
+        return $sent;
     }
 
     public function canBeReviewedBy(User $user): bool

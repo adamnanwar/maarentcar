@@ -4,14 +4,16 @@ import StepIndicator from '@/components/booking/StepIndicator.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { confirm } from '@/composables/useConfirm';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { formatCurrency } from '@/lib/utils';
 import type { AppPageProps } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { onMounted, ref } from 'vue';
 
 interface TourPackage {
     id: number;
+    slug: string;
     name: string;
     price: number;
     duration_days: number;
@@ -19,8 +21,28 @@ interface TourPackage {
     destinations: { id: number; name: string }[];
 }
 
-const props = defineProps<{ package: TourPackage }>();
+interface ExistingPackageBooking {
+    booking_code: string;
+    package_name: string | null;
+}
+
+const props = defineProps<{ package: TourPackage; existingPackageBooking: ExistingPackageBooking | null }>();
 const page = usePage<AppPageProps>();
+
+onMounted(async () => {
+    if (!props.existingPackageBooking) return;
+
+    const proceed = await confirm({
+        title: 'Anda Sudah Memiliki Pesanan Paket Wisata',
+        description: `Anda sudah melakukan pemesanan paket wisata ${props.existingPackageBooking.package_name ?? ''}. Apakah Anda yakin ingin lanjut memesan paket wisata ini?`,
+        confirmText: 'Ya, Lanjutkan',
+        cancelText: 'Batal',
+    });
+
+    if (!proceed) {
+        router.visit(`/paket-wisata/${props.package.slug}`);
+    }
+});
 
 const steps = ['Tanggal', 'Alamat Penjemputan', 'Catatan', 'Ringkasan & Bayar'];
 const step = ref(1);
@@ -115,7 +137,8 @@ function submit() {
                         </div>
                     </div>
                     <p class="text-xs text-muted-foreground">
-                        Setelah pesanan dibuat, Anda akan diarahkan ke halaman pembayaran untuk transfer manual.
+                        Setelah pesanan dibuat, Anda akan diarahkan ke halaman pembayaran untuk transfer manual. Anda memiliki waktu 1 jam untuk
+                        menyelesaikan pembayaran, jika melewati batas waktu tersebut pesanan akan otomatis dibatalkan.
                     </p>
                 </div>
 

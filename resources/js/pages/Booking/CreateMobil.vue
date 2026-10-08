@@ -4,9 +4,11 @@ import StepIndicator from '@/components/booking/StepIndicator.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import FileUpload from '@/components/FileUpload.vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { formatCurrency } from '@/lib/utils';
 import type { AppPageProps } from '@/types';
+import { IdCard } from 'lucide-vue-next';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -29,7 +31,7 @@ interface Destination {
 const props = defineProps<{ vehicle: Vehicle; destinations: Destination[] }>();
 const page = usePage<AppPageProps>();
 
-const steps = ['Jadwal', 'Jenis Layanan', 'Konfirmasi', 'Ringkasan & Bayar'];
+const steps = ['Jadwal', 'Jenis Layanan', 'Upload KTP', 'Konfirmasi', 'Ringkasan & Bayar'];
 const step = ref(1);
 
 const today = new Date().toISOString().slice(0, 16);
@@ -50,6 +52,7 @@ const form = useForm({
     landmark: '',
     passenger_count: null as number | null,
     notes: '',
+    ktp_photo: null as File | null,
 });
 
 const durationDays = computed(() => {
@@ -77,14 +80,14 @@ function onDriverToggle(withDriver: boolean) {
 }
 
 function next() {
-    step.value = Math.min(4, step.value + 1);
+    step.value = Math.min(5, step.value + 1);
 }
 function back() {
     step.value = Math.max(1, step.value - 1);
 }
 
 function submit() {
-    form.post('/booking');
+    form.post('/booking', { forceFormData: true });
 }
 
 const requiresAddress = computed(() => form.delivery_method !== 'pickup_at_office');
@@ -184,9 +187,35 @@ const requiresAddress = computed(() => form.delivery_method !== 'pickup_at_offic
                     </div>
                 </div>
 
-                <!-- Step 3: Konfirmasi -->
+                <!-- Step 3: Upload KTP -->
                 <div v-else-if="step === 3" class="space-y-4">
-                    <h2 class="font-semibold">Langkah 3: Konfirmasi Data Diri</h2>
+                    <h2 class="font-semibold">Langkah 3: Upload KTP</h2>
+                    <div class="flex items-start gap-3 rounded-lg border border-primary/30 bg-secondary p-4">
+                        <IdCard class="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                        <div class="text-sm text-muted-foreground">
+                            <p class="font-medium text-foreground">KTP digunakan sebagai jaminan sewa.</p>
+                            <p class="mt-1">
+                                Foto KTP yang Anda unggah akan kami simpan sebagai jaminan selama masa sewa berlangsung. Saat pengambilan mobil,
+                                KTP asli (hardcopy) akan ditahan sementara oleh pihak kami dan dikembalikan saat mobil selesai disewa. Jangan lupa
+                                membawa KTP asli Anda ya!
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <FileUpload
+                            v-model="form.ktp_photo"
+                            accept="image/*,.pdf"
+                            required
+                            label="Klik atau seret foto KTP ke sini"
+                            hint="Format JPG, PNG, atau PDF. Maksimal 5MB. Pastikan foto jelas dan tidak buram."
+                        />
+                        <p v-if="form.errors.ktp_photo" class="mt-1 text-sm text-destructive">{{ form.errors.ktp_photo }}</p>
+                    </div>
+                </div>
+
+                <!-- Step 4: Konfirmasi -->
+                <div v-else-if="step === 4" class="space-y-4">
+                    <h2 class="font-semibold">Langkah 4: Konfirmasi Data Diri</h2>
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <Label>Nama</Label>
@@ -217,9 +246,9 @@ const requiresAddress = computed(() => form.delivery_method !== 'pickup_at_offic
                     </div>
                 </div>
 
-                <!-- Step 4: Ringkasan & Bayar -->
+                <!-- Step 5: Ringkasan & Bayar -->
                 <div v-else class="space-y-4">
-                    <h2 class="font-semibold">Langkah 4: Ringkasan & Bayar</h2>
+                    <h2 class="font-semibold">Langkah 5: Ringkasan & Bayar</h2>
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between"><span>Sewa mobil ({{ durationDays }} hari)</span><span>{{ formatCurrency(basePrice) }}</span></div>
                         <div v-if="driverFee > 0" class="flex justify-between"><span>Biaya supir</span><span>{{ formatCurrency(driverFee) }}</span></div>
@@ -230,14 +259,22 @@ const requiresAddress = computed(() => form.delivery_method !== 'pickup_at_offic
                         </div>
                     </div>
                     <p class="text-xs text-muted-foreground">
-                        Setelah pesanan dibuat, Anda akan diarahkan ke halaman pembayaran untuk transfer manual.
+                        Setelah pesanan dibuat, Anda akan diarahkan ke halaman pembayaran untuk transfer manual. Anda memiliki waktu 1 jam untuk
+                        menyelesaikan pembayaran, jika melewati batas waktu tersebut pesanan akan otomatis dibatalkan.
                     </p>
                 </div>
 
                 <div class="mt-6 flex justify-between">
                     <Button v-if="step > 1" type="button" variant="outline" @click="back">Kembali</Button>
                     <span v-else></span>
-                    <Button v-if="step < 4" type="button" :disabled="step === 1 && durationDays === 0" @click="next">Lanjut</Button>
+                    <Button
+                        v-if="step < 5"
+                        type="button"
+                        :disabled="(step === 1 && durationDays === 0) || (step === 3 && !form.ktp_photo)"
+                        @click="next"
+                    >
+                        Lanjut
+                    </Button>
                     <Button v-else type="button" :disabled="form.processing" @click="submit">Buat Pesanan</Button>
                 </div>
             </div>

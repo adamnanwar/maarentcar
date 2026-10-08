@@ -1,0 +1,265 @@
+PANDUAN PENGGUNAAN SISTEM WE RENT CAR
+
+
+TENTANG PANDUAN INI
+
+We Rent Car adalah platform untuk menyewa mobil dan memesan paket wisata di Kota Batam secara online. Sistem ini memiliki dua sisi tampilan yang berbeda:
+
+1. Tampilan Pelanggan, digunakan oleh masyarakat umum yang ingin menyewa mobil atau memesan paket wisata.
+2. Tampilan Admin dan Staff, digunakan oleh pengelola We Rent Car untuk mengurus data mobil, paket wisata, pesanan, pembayaran, dan pelanggan.
+
+Kedua sisi ini dibuka lewat halaman masuk (login) yang sama. Sistem akan otomatis mengarahkan pengguna ke tampilan yang sesuai setelah berhasil masuk, tergantung jenis akunnya.
+
+Panduan ini dibagi menjadi dua bagian besar, yaitu Panduan untuk Pelanggan dan Panduan untuk Admin/Staff. Silakan langsung menuju bagian yang sesuai dengan kebutuhan Anda.
+
+
+==============================================
+BAGIAN SATU - PANDUAN UNTUK PELANGGAN
+==============================================
+
+
+1. MEMBUAT AKUN BARU (REGISTRASI)
+
+1. Buka halaman utama We Rent Car, lalu klik tombol Daftar di pojok kanan atas.
+2. Isi formulir pendaftaran, yaitu nama lengkap, alamat email, nomor telepon, kata sandi, dan konfirmasi kata sandi.
+3. Pastikan email yang digunakan belum pernah didaftarkan sebelumnya dan kata sandi memenuhi ketentuan minimal yang diminta sistem.
+4. Klik tombol Daftar.
+5. Jika data yang diisi sudah benar, akun akan langsung dibuat dan Anda otomatis masuk ke halaman dashboard pelanggan.
+
+
+2. MASUK KE AKUN (LOGIN)
+
+1. Klik tombol Masuk di pojok kanan atas halaman utama.
+2. Isi email dan kata sandi yang telah didaftarkan.
+3. Centang pilihan Ingat Saya apabila ingin tetap masuk pada perangkat yang sama di kunjungan berikutnya.
+4. Klik tombol Masuk.
+5. Jika email dan kata sandi benar, Anda akan diarahkan ke halaman dashboard pelanggan.
+
+
+3. LUPA KATA SANDI
+
+1. Pada halaman masuk, klik tautan Lupa Kata Sandi.
+2. Masukkan alamat email yang terdaftar, lalu klik Kirim Link Reset.
+3. Sistem akan mengirimkan tautan untuk membuat kata sandi baru ke email tersebut.
+4. Buka tautan tersebut, isi kata sandi baru beserta konfirmasinya, lalu simpan.
+5. Setelah berhasil, gunakan kata sandi baru tersebut untuk masuk kembali.
+
+
+4. MENJELAJAHI KATALOG MOBIL
+
+1. Klik menu Mobil pada bagian atas halaman.
+2. Semua mobil yang tersedia akan ditampilkan lengkap dengan foto, harga sewa per hari, kapasitas penumpang, dan jenis transmisi.
+3. Gunakan kotak pencarian atau filter kategori, transmisi, dan kapasitas kursi untuk mempersempit pilihan sesuai kebutuhan.
+4. Klik salah satu mobil untuk melihat halaman detailnya, yang berisi galeri foto, spesifikasi lengkap, biaya tambahan supir apabila ada, serta ulasan dari pelanggan lain.
+5. Jika Anda belum masuk ke akun, tombol yang tersedia adalah Masuk untuk Sewa Mobil Ini. Jika sudah masuk, tombol tersebut berubah menjadi Sewa Sekarang.
+
+
+5. MENJELAJAHI PAKET WISATA DAN DESTINASI
+
+1. Klik menu Paket Wisata untuk melihat seluruh paket wisata yang ditawarkan, lengkap dengan durasi perjalanan, destinasi yang termasuk di dalamnya, dan harga tetap.
+2. Klik menu Destinasi untuk melihat daftar tempat wisata populer di Batam yang bisa dikunjungi melalui paket wisata.
+3. Klik salah satu paket untuk melihat rinciannya secara lengkap, termasuk ulasan dari pelanggan yang pernah memesan.
+
+
+6. CARA MENYEWA MOBIL
+
+1. Buka halaman detail mobil yang ingin disewa, lalu klik tombol Sewa Sekarang. Anda harus sudah masuk ke akun untuk melanjutkan.
+2. Langkah Jadwal, pilih tanggal dan jam mulai serta selesai sewa. Sistem akan otomatis menghitung lama sewa dan perkiraan total biaya.
+3. Langkah Jenis Layanan, pilih antara Lepas Kunci (Anda mengemudi sendiri) atau Dengan Supir. Apabila memilih layanan dengan supir atau antar jemput, isi alamat penjemputan dan pengantaran. Anda juga dapat menambahkan kunjungan ke destinasi tertentu sebagai tambahan.
+4. Langkah Konfirmasi Data Diri, periksa nama dan nomor telepon yang akan digunakan, serta tambahkan catatan khusus apabila diperlukan.
+5. Langkah Ringkasan dan Bayar, periksa kembali seluruh rincian biaya yang ditampilkan, lalu klik tombol Buat Pesanan.
+6. Jika mobil masih tersedia pada tanggal yang dipilih, pesanan akan berhasil dibuat dan Anda akan diarahkan ke halaman detail pesanan untuk melanjutkan pembayaran. Apabila mobil ternyata sudah dipesan orang lain pada tanggal tersebut, sistem akan meminta Anda memilih tanggal lain.
+
+
+7. CARA MEMESAN PAKET WISATA
+
+1. Buka halaman detail paket wisata yang diminati, lalu klik tombol Pesan Paket Ini. Anda harus sudah masuk ke akun untuk melanjutkan.
+2. Pilih tanggal keberangkatan dan jumlah peserta.
+3. Isi alamat penjemputan, karena bagian ini wajib diisi untuk paket wisata.
+4. Tambahkan catatan tambahan apabila diperlukan, lalu periksa ringkasan harga yang ditampilkan (harga paket bersifat tetap, tidak dihitung per hari).
+5. Klik tombol Buat Pesanan untuk menyelesaikan pemesanan, lalu Anda akan diarahkan ke halaman detail pesanan untuk melakukan pembayaran.
+
+
+8. MELAKUKAN PEMBAYARAN
+
+1. Setelah pesanan dibuat, buka halaman detail pesanan tersebut. Di sana akan tampil informasi rekening bank tujuan transfer.
+2. Lakukan transfer sesuai jumlah yang tertera ke rekening yang ditampilkan.
+3. Pada halaman yang sama, isi nama dan nomor rekening pengirim apabila diminta, lalu unggah foto atau berkas PDF bukti transfer melalui kotak unggah yang tersedia. Berkas dapat diseret langsung ke kotak tersebut atau dipilih melalui tombol pilih berkas.
+4. Klik tombol Unggah Bukti Transfer.
+5. Setelah berhasil diunggah, status pesanan akan berubah menjadi Menunggu Verifikasi. Tim We Rent Car akan memeriksa bukti transfer tersebut dan mengonfirmasi pesanan Anda.
+6. Apabila bukti transfer ditolak karena tidak sesuai, Anda akan menerima pemberitahuan beserta alasannya, dan dapat mengunggah ulang bukti transfer yang benar.
+
+
+9. MEMANTAU STATUS PESANAN
+
+1. Klik menu Dashboard atau buka daftar Booking Saya untuk melihat seluruh riwayat pesanan Anda.
+2. Setiap pesanan memiliki salah satu status berikut.
+
+   Menunggu Pembayaran, artinya pesanan sudah dibuat namun Anda belum mengunggah bukti transfer.
+   Menunggu Verifikasi, artinya bukti transfer sudah diunggah dan sedang diperiksa oleh tim We Rent Car.
+   Dikonfirmasi, artinya pembayaran sudah diverifikasi dan pesanan Anda dipastikan berjalan.
+   Sedang Berlangsung, artinya masa sewa atau perjalanan sedang berlangsung.
+   Selesai, artinya masa sewa atau perjalanan telah selesai.
+   Dibatalkan, artinya pesanan tidak jadi dilaksanakan.
+
+3. Klik salah satu pesanan untuk melihat rincian lengkap beserta riwayat perubahan statusnya.
+
+
+10. MEMBATALKAN PESANAN
+
+1. Buka halaman detail pesanan yang ingin dibatalkan.
+2. Tombol Batalkan Booking hanya muncul apabila status pesanan masih Menunggu Pembayaran atau Menunggu Verifikasi. Apabila status sudah berubah menjadi Dikonfirmasi atau lebih lanjut, pembatalan harus dikoordinasikan langsung dengan pihak We Rent Car melalui kontak yang tersedia di halaman Hubungi Kami.
+3. Klik tombol Batalkan Booking, lalu konfirmasi pembatalan pada kotak dialog yang muncul.
+
+
+11. MENULIS ULASAN
+
+1. Ulasan hanya dapat ditulis untuk pesanan yang sudah berstatus Selesai dan belum pernah diberi ulasan sebelumnya.
+2. Buka halaman detail pesanan tersebut, lalu klik tombol Tulis Ulasan.
+3. Berikan penilaian bintang dari satu sampai lima, dan tuliskan komentar apabila ingin berbagi pengalaman lebih detail.
+4. Klik tombol Kirim Ulasan. Ulasan Anda akan tampil pada halaman detail mobil atau paket wisata terkait, kecuali jika disembunyikan oleh admin.
+
+
+12. MENGELOLA PROFIL
+
+1. Klik nama akun Anda atau menu Profil untuk membuka halaman pengaturan akun.
+2. Anda dapat memperbarui nama, email, dan nomor telepon pada halaman ini.
+3. Untuk mengganti kata sandi, isi kata sandi lama dan kata sandi baru pada bagian yang tersedia, lalu simpan perubahan.
+
+
+==============================================
+BAGIAN DUA - PANDUAN UNTUK ADMIN DAN STAFF
+==============================================
+
+Catatan mengenai hak akses: Admin memiliki akses penuh ke seluruh menu. Staff memiliki akses yang lebih terbatas, tergantung hak akses yang diberikan oleh admin. Beberapa menu seperti Ulasan, Pengguna, Staff, Pengaturan, dan Laporan hanya dapat dibuka oleh admin, kecuali admin memberikan izin tambahan kepada staff tertentu.
+
+
+1. MASUK KE PANEL ADMIN
+
+1. Buka halaman masuk yang sama dengan pelanggan, lalu masukkan email dan kata sandi akun admin atau staff.
+2. Setelah berhasil masuk, sistem akan otomatis mengenali jenis akun dan mengarahkan Anda ke panel admin, bukan ke tampilan pelanggan.
+
+
+2. MENGENAL DASHBOARD
+
+Halaman pertama yang tampil setelah masuk adalah Dashboard. Halaman ini menampilkan ringkasan operasional, seperti jumlah total mobil, mobil yang tersedia, jumlah destinasi dan paket wisata, jumlah pesanan yang menunggu verifikasi pembayaran, serta jumlah pesanan yang sedang berlangsung. Gunakan halaman ini sebagai gambaran cepat kondisi bisnis sebelum masuk ke menu lain.
+
+
+3. MENGELOLA KATEGORI MOBIL
+
+1. Buka menu Kategori Mobil pada bagian sisi kiri layar.
+2. Klik Tambah untuk membuat kategori baru, atau pilih kategori yang sudah ada untuk mengubahnya.
+3. Isi nama kategori dan keterangan lain yang diminta, lalu simpan.
+4. Kategori dapat dihapus melalui tombol hapus, dengan kotak konfirmasi yang akan muncul terlebih dahulu.
+
+
+4. MENGELOLA DATA MOBIL
+
+1. Buka menu Kelola Mobil.
+2. Klik Tambah Mobil untuk mendaftarkan mobil baru, atau pilih salah satu mobil pada daftar untuk mengubah datanya.
+3. Isi seluruh data mobil, meliputi kategori, nama, merek, model, tahun, transmisi, jenis bahan bakar, kapasitas kursi, harga sewa per hari, biaya supir, biaya antar jemput, status ketersediaan, serta deskripsi singkat.
+4. Unggah satu atau beberapa foto mobil melalui kotak unggah yang tersedia. Foto dapat diseret langsung ke kotak tersebut atau dipilih satu per satu.
+5. Klik tombol Simpan. Mobil yang berhasil disimpan akan otomatis tampil di katalog publik apabila statusnya aktif.
+6. Untuk staff, akses pada menu ini biasanya terbatas hanya melihat data dan mengubah status ketersediaan mobil, kecuali diberikan izin tambahan oleh admin.
+7. Mobil yang dinonaktifkan tidak akan lagi tampil di katalog untuk pelanggan, namun riwayat pesanan yang sudah ada sebelumnya tetap tersimpan seperti biasa.
+
+
+5. MENGELOLA DESTINASI WISATA
+
+1. Buka menu Destinasi.
+2. Klik Tambah untuk menambahkan destinasi baru, atau pilih destinasi yang sudah ada untuk mengubahnya.
+3. Isi nama, kategori, deskripsi, alamat, biaya tambahan apabila destinasi ini dipilih sebagai add-on pada penyewaan mobil, serta unggah foto destinasi.
+4. Klik Simpan untuk menyimpan perubahan.
+
+
+6. MENGELOLA PAKET WISATA
+
+1. Buka menu Paket Wisata.
+2. Klik Tambah Paket Wisata untuk membuat paket baru, atau pilih paket yang sudah ada untuk mengubahnya.
+3. Isi nama paket, durasi, kapasitas peserta, harga, deskripsi, serta pilih destinasi mana saja yang termasuk dalam paket tersebut.
+4. Unggah foto paket wisata, lalu klik Simpan.
+5. Paket yang dinonaktifkan tidak akan tampil di halaman publik, namun tetap muncul pada riwayat pesanan pelanggan yang sudah pernah memesannya.
+
+
+7. MENGELOLA PESANAN (BOOKING)
+
+1. Buka menu Semua Booking untuk melihat seluruh pesanan yang masuk, baik pesanan sewa mobil maupun paket wisata.
+2. Gunakan filter status, jenis pesanan, atau kata kunci untuk mencari pesanan tertentu dengan lebih cepat.
+3. Klik salah satu pesanan untuk melihat rinciannya secara lengkap, termasuk riwayat pembayaran dan riwayat perubahan status.
+4. Ubah status pesanan sesuai urutan yang berlaku, yaitu dari Dikonfirmasi menjadi Sedang Berlangsung, kemudian dari Sedang Berlangsung menjadi Selesai. Pesanan yang masih berstatus Menunggu Pembayaran atau Menunggu Verifikasi juga dapat langsung diubah menjadi Dibatalkan apabila diperlukan.
+5. Anda dapat menambahkan catatan internal pada pesanan yang hanya terlihat oleh tim internal, tidak terlihat oleh pelanggan.
+6. Setiap perubahan status akan otomatis mengirimkan pemberitahuan kepada pelanggan terkait.
+
+
+8. MEMVERIFIKASI PEMBAYARAN
+
+1. Buka menu Verifikasi Pembayaran untuk melihat daftar bukti transfer yang sedang menunggu diperiksa.
+2. Klik salah satu antrean untuk melihat detail bukti transfer yang diunggah pelanggan.
+3. Periksa kesesuaian jumlah dan bukti transfer tersebut.
+4. Apabila sudah sesuai, klik tombol Verifikasi. Status pembayaran akan berubah menjadi terverifikasi dan status pesanan otomatis menjadi Dikonfirmasi.
+5. Apabila tidak sesuai, klik tombol Tolak dan isi alasan penolakan. Pelanggan akan menerima pemberitahuan dan diminta mengunggah ulang bukti transfer yang benar.
+
+
+9. MENGELOLA ULASAN PELANGGAN
+
+Menu ini hanya dapat diakses oleh admin.
+
+1. Buka menu Ulasan untuk melihat seluruh ulasan yang pernah dikirim oleh pelanggan.
+2. Gunakan filter penilaian bintang, status tampil atau sembunyi, dan kata kunci untuk mencari ulasan tertentu.
+3. Klik tombol Sembunyikan pada ulasan yang tidak pantas ditampilkan ke publik, misalnya karena berisi konten tidak sesuai. Ulasan yang disembunyikan tidak akan lagi muncul di halaman detail mobil maupun paket wisata.
+4. Klik tombol Tampilkan untuk menampilkan kembali ulasan yang sebelumnya disembunyikan.
+
+
+10. MENGELOLA DATA PELANGGAN
+
+Menu ini secara default hanya dapat diakses oleh admin.
+
+1. Buka menu Pengguna untuk melihat daftar seluruh akun pelanggan yang terdaftar.
+2. Gunakan pencarian atau filter status untuk menemukan akun tertentu.
+3. Klik tombol Nonaktifkan pada akun yang perlu dibekukan sementara, atau Aktifkan untuk mengaktifkan kembali akun yang sebelumnya dinonaktifkan.
+4. Klik tombol Hapus apabila akun perlu dihapus secara permanen, lalu konfirmasi pada kotak dialog yang muncul.
+5. Admin tidak dapat mengubah nama atau email pelanggan secara langsung dari menu ini. Perubahan data identitas tetap dilakukan oleh pelanggan sendiri melalui halaman profil mereka.
+
+
+11. MENGELOLA AKUN STAFF DAN HAK AKSES
+
+Menu ini hanya dapat diakses oleh admin.
+
+1. Buka menu Staff untuk melihat daftar akun staff yang ada.
+2. Klik Tambah Staff untuk membuat akun staff baru dengan mengisi nama, email, nomor telepon, dan kata sandi awal.
+3. Untuk mengubah data staff yang sudah ada, klik akun staff tersebut. Kata sandi bersifat opsional saat diubah, apabila dikosongkan maka kata sandi lama tetap berlaku.
+4. Klik Nonaktifkan atau Hapus apabila diperlukan, sama seperti pengelolaan akun pelanggan.
+5. Untuk mengatur hak akses, buka panel Permission Role Staff, lalu centang atau hapus centang izin akses per menu sesuai kebutuhan, misalnya izin mengelola mobil, memverifikasi pembayaran, atau mengelola ulasan.
+6. Klik Simpan Permission. Perubahan hak akses berlaku langsung untuk seluruh akun staff tanpa perlu staff tersebut masuk ulang ke akunnya.
+
+
+12. PENGATURAN SISTEM
+
+Menu ini hanya dapat diakses oleh admin.
+
+1. Buka menu Pengaturan.
+2. Perbarui informasi rekening bank tujuan transfer, nomor kontak WhatsApp, teks yang tampil di halaman beranda, serta kebijakan pembatalan pesanan.
+3. Klik Simpan Pengaturan. Perubahan akan langsung berlaku di seluruh sistem, misalnya informasi rekening baru akan langsung tampil pada halaman pembayaran pesanan pelanggan.
+
+
+13. MELIHAT LAPORAN
+
+Menu ini hanya dapat diakses oleh admin.
+
+1. Buka menu Laporan.
+2. Pilih rentang tanggal yang ingin ditinjau. Secara default, sistem menampilkan data mulai dari awal bulan berjalan sampai hari ini.
+3. Sistem akan menampilkan ringkasan total pendapatan, rincian pendapatan harian, jumlah pesanan berdasarkan status, tingkat penggunaan armada, serta daftar mobil dan paket wisata paling laris.
+4. Klik tombol Ekspor CSV apabila ingin mengunduh laporan tersebut sebagai berkas untuk disimpan atau diolah lebih lanjut.
+
+
+==============================================
+BANTUAN LEBIH LANJUT
+==============================================
+
+Apabila mengalami kendala saat menggunakan sistem, silakan hubungi tim We Rent Car melalui salah satu kontak berikut.
+
+WhatsApp, nomor 0821-7082-9433
+Email, info@werentcar.com
+Alamat, Perum, Jalan Sarmen Raya Blok B Nomor 03, Tanjung Buntung, Kecamatan Bengkong, Kota Batam, Kepulauan Riau 29457
+
+Kontak ini juga dapat dilihat kapan saja melalui halaman Hubungi Kami pada bagian bawah situs We Rent Car.

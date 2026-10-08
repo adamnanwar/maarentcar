@@ -46,7 +46,11 @@ beforeEach(function () {
 });
 
 test('booking wizard pages render the correct Inertia component', function () {
-    $this->actingAs($this->customer)
+    // Pelanggan baru tanpa booking mobil aktif, supaya aturan "1 booking mobil aktif
+    // per pelanggan" tidak menghalangi halaman wizard ini untuk dibuka.
+    $customerWithoutActiveBooking = User::factory()->create(['role_id' => Role::where('name', Role::CUSTOMER)->value('id')]);
+
+    $this->actingAs($customerWithoutActiveBooking)
         ->get("/booking/mobil/{$this->vehicle->slug}/baru")
         ->assertInertia(fn (Assert $page) => $page->component('Booking/CreateMobil'));
 

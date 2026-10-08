@@ -34,6 +34,7 @@ interface Booking {
     notes: string | null;
     internal_notes: string | null;
     pickup_address_snapshot: Record<string, string> | null;
+    ktp_photo_path: string | null;
     user: { name: string; email: string; phone: string | null };
     vehicle: { name: string } | null;
     package: { name: string } | null;
@@ -117,6 +118,15 @@ function submit() {
                         <span class="font-medium">Catatan pelanggan:</span> {{ booking.notes }}
                     </p>
                     <p class="mt-3 border-t border-border pt-3 font-bold text-primary">Total: {{ formatCurrency(booking.total_price) }}</p>
+                </div>
+
+                <div v-if="booking.ktp_photo_path" class="rounded-xl border border-border bg-background p-6">
+                    <p class="font-semibold">KTP Jaminan</p>
+                    <p class="mt-1 text-sm text-muted-foreground">
+                        Foto KTP yang diunggah pelanggan sebagai jaminan. Pastikan KTP asli (hardcopy) ditahan saat pengambilan mobil dan
+                        dikembalikan setelah booking selesai.
+                    </p>
+                    <a :href="`/booking/${booking.id}/ktp`" target="_blank" class="mt-2 inline-block text-sm text-primary hover:underline">Lihat KTP</a>
                 </div>
 
                 <div v-if="booking.payments.length" class="rounded-xl border border-border bg-background p-6">

@@ -8,14 +8,19 @@ use App\Models\TourPackage;
 use App\Models\User;
 use App\Models\Vehicle;
 use Carbon\Carbon;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class BookingService
 {
-    public function createVehicleBooking(User $user, array $data): Booking
+    public function createVehicleBooking(User $user, array $data, ?UploadedFile $ktpPhoto = null): Booking
     {
+        Booking::sweepOverduePayments();
+
+        $this->assertNoActiveVehicleBooking($user);
+
         $vehicle = Vehicle::where('is_active', true)->findOrFail($data['vehicle_id']);
 
         $start = Carbon::parse($data['start_datetime']);
@@ -45,7 +50,7 @@ class BookingService
 
         return DB::transaction(function () use (
             $user, $vehicle, $start, $end, $durationDays, $withDriver, $deliveryMethod,
-            $basePrice, $driverFee, $deliveryFee, $addonTotal, $totalPrice, $destinations, $data
+            $basePrice, $driverFee, $deliveryFee, $addonTotal, $totalPrice, $destinations, $data, $ktpPhoto
         ) {
             $booking = Booking::create([
                 'booking_code' => $this->generateBookingCode(),
@@ -65,8 +70,15 @@ class BookingService
                 'addon_total' => $addonTotal,
                 'total_price' => $totalPrice,
                 'status' => Booking::STATUS_MENUNGGU_PEMBAYARAN,
+                'payment_due_at' => now()->addHour(),
                 'notes' => $data['notes'] ?? null,
             ]);
+
+            if ($ktpPhoto) {
+                $booking->update([
+                    'ktp_photo_path' => $ktpPhoto->store("ktp-photos/{$booking->id}", 'local'),
+                ]);
+            }
 
             foreach ($destinations as $destination) {
                 $booking->destinations()->create([
@@ -84,6 +96,20 @@ class BookingService
 
             return $booking;
         });
+    }
+
+    protected function assertNoActiveVehicleBooking(User $user): void
+    {
+        $hasActive = Booking::where('user_id', $user->id)
+            ->where('booking_type', Booking::TYPE_MOBIL)
+            ->whereIn('status', Booking::activeStatuses())
+            ->exists();
+
+        if ($hasActive) {
+            throw ValidationException::withMessages([
+                'vehicle_id' => 'Anda masih memiliki pesanan sewa mobil yang aktif. Selesaikan, batalkan, atau tunggu pesanan tersebut rampung sebelum membuat pesanan sewa mobil baru.',
+            ]);
+        }
     }
 
     public function createPackageBooking(User $user, array $data): Booking
@@ -112,6 +138,7 @@ class BookingService
                 'base_price' => $totalPrice,
                 'total_price' => $totalPrice,
                 'status' => Booking::STATUS_MENUNGGU_PEMBAYARAN,
+                'payment_due_at' => now()->addHour(),
                 'notes' => $data['notes'] ?? null,
             ]);
 

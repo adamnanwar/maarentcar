@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import FileUpload from '@/components/FileUpload.vue';
+import PaymentCountdown from '@/components/booking/PaymentCountdown.vue';
 import { confirm } from '@/composables/useConfirm';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { formatCurrency } from '@/lib/utils';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { FileText } from 'lucide-vue-next';
+import { FileText, IdCard } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Payment {
@@ -40,6 +41,8 @@ interface Booking {
     with_driver: boolean;
     delivery_method: string;
     pickup_address_snapshot: Record<string, string> | null;
+    ktp_photo_path: string | null;
+    payment_due_at: string | null;
     passenger_count: number | null;
     base_price: number;
     driver_fee: number;
@@ -93,6 +96,10 @@ async function cancelBooking() {
     if (await confirm({ title: 'Batalkan booking ini?', description: 'Tindakan ini tidak dapat dibatalkan.', variant: 'destructive', confirmText: 'Batalkan' })) {
         router.post(`/booking/${props.booking.id}/batalkan`);
     }
+}
+
+function onPaymentExpired() {
+    router.reload({ only: ['booking'] });
 }
 </script>
 
@@ -154,6 +161,19 @@ async function cancelBooking() {
                     <div v-if="Number(booking.addon_total) > 0" class="flex justify-between"><span>Add-on destinasi</span><span>{{ formatCurrency(booking.addon_total) }}</span></div>
                     <div class="flex justify-between border-t border-border pt-2 font-bold text-primary"><span>Total</span><span>{{ formatCurrency(booking.total_price) }}</span></div>
                 </div>
+            </div>
+
+            <div v-if="canUploadProof && booking.payment_due_at" class="mt-4">
+                <PaymentCountdown :due-at="booking.payment_due_at" @expired="onPaymentExpired" />
+            </div>
+
+            <div v-if="booking.ktp_photo_path" class="mt-4 rounded-xl border border-border bg-background p-6">
+                <p class="flex items-center gap-2 font-semibold"><IdCard class="h-4 w-4 text-primary" /> KTP Jaminan</p>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Foto KTP Anda tersimpan sebagai jaminan untuk pesanan ini. KTP asli akan ditahan sementara oleh kami saat pengambilan mobil
+                    dan dikembalikan setelah masa sewa selesai.
+                </p>
+                <a :href="`/booking/${booking.id}/ktp`" target="_blank" class="mt-2 inline-block text-sm text-primary hover:underline">Lihat KTP</a>
             </div>
 
             <div v-if="canUploadProof" class="mt-4 rounded-xl border border-primary/30 bg-secondary p-6">

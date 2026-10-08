@@ -1,0 +1,1 @@
+Ini bukan berkas gambar atau PDF yang valid. Dipakai untuk menguji validasi format berkas.

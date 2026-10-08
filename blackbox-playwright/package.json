@@ -1,0 +1,13 @@
+{
+  "name": "we-rent-car-blackbox-playwright",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.13.5",
+    "dotenv": "^16.4.5"
+  }
+}

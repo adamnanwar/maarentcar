@@ -38,6 +38,7 @@ test('customer can create a self-drive vehicle booking with correct price', func
         'end_datetime' => now()->addDays(3)->format('Y-m-d\TH:i'),
         'with_driver' => false,
         'delivery_method' => 'pickup_at_office',
+        'ktp_photo' => UploadedFile::fake()->create('ktp.jpg', 100, 'image/jpeg'),
     ]);
 
     $booking = Booking::first();
@@ -61,6 +62,7 @@ test('vehicle booking with driver and delivery adds driver fee and delivery fee'
         'recipient_name' => 'Budi',
         'address_phone' => '08123456789',
         'full_address' => 'Jl. Contoh No. 1',
+        'ktp_photo' => UploadedFile::fake()->create('ktp.jpg', 100, 'image/jpeg'),
     ]);
 
     $booking = Booking::first();
@@ -86,13 +88,18 @@ test('double booking on overlapping dates is rejected', function () {
         'status' => 'dikonfirmasi',
     ]);
 
-    $response = $this->actingAs($this->customer)->post('/booking', [
+    // Pelanggan lain, supaya aturan "1 booking mobil aktif per pelanggan" tidak ikut memblokir
+    // permintaan ini - yang ingin diuji di sini murni validasi tanggal bentrok.
+    $otherCustomer = User::factory()->create(['role_id' => Role::where('name', Role::CUSTOMER)->value('id')]);
+
+    $response = $this->actingAs($otherCustomer)->post('/booking', [
         'booking_type' => 'mobil',
         'vehicle_id' => $this->vehicle->id,
         'start_datetime' => now()->addDays(3)->format('Y-m-d\TH:i'),
         'end_datetime' => now()->addDays(5)->format('Y-m-d\TH:i'),
         'with_driver' => false,
         'delivery_method' => 'pickup_at_office',
+        'ktp_photo' => UploadedFile::fake()->create('ktp.jpg', 100, 'image/jpeg'),
     ]);
 
     $response->assertSessionHasErrors('start_datetime');
@@ -190,4 +197,61 @@ test('admin rejecting a payment sends the booking back to menunggu_pembayaran', 
 
 test('customer cannot access admin payment verification routes', function () {
     $this->actingAs($this->customer)->get('/admin/pembayaran')->assertRedirect(route('home'));
+});
+
+test('ktp photo is required to create a vehicle booking', function () {
+    $response = $this->actingAs($this->customer)->post('/booking', [
+        'booking_type' => 'mobil',
+        'vehicle_id' => $this->vehicle->id,
+        'start_datetime' => now()->addDay()->format('Y-m-d\TH:i'),
+        'end_datetime' => now()->addDays(2)->format('Y-m-d\TH:i'),
+        'with_driver' => false,
+        'delivery_method' => 'pickup_at_office',
+    ]);
+
+    $response->assertSessionHasErrors('ktp_photo');
+    expect(Booking::count())->toBe(0);
+});
+
+test('customer with an active vehicle booking is blocked from creating a second one', function () {
+    Booking::create([
+        'booking_code' => 'WRC-TEST-0004',
+        'user_id' => $this->customer->id,
+        'booking_type' => 'mobil',
+        'vehicle_id' => $this->vehicle->id,
+        'start_datetime' => now()->addDays(5),
+        'end_datetime' => now()->addDays(6),
+        'duration_days' => 1,
+        'with_driver' => false,
+        'delivery_method' => 'pickup_at_office',
+        'total_price' => 300000,
+        'status' => 'menunggu_pembayaran',
+    ]);
+
+    $response = $this->actingAs($this->customer)->get("/booking/mobil/{$this->vehicle->slug}/baru");
+
+    $response->assertRedirect();
+    expect(session('error'))->not->toBeNull();
+    expect(Booking::count())->toBe(1);
+});
+
+test('unpaid vehicle booking is cancelled automatically after the 1 hour payment window', function () {
+    $booking = Booking::create([
+        'booking_code' => 'WRC-TEST-0005',
+        'user_id' => $this->customer->id,
+        'booking_type' => 'mobil',
+        'vehicle_id' => $this->vehicle->id,
+        'start_datetime' => now()->addDay(),
+        'end_datetime' => now()->addDays(2),
+        'duration_days' => 1,
+        'with_driver' => false,
+        'delivery_method' => 'pickup_at_office',
+        'total_price' => 300000,
+        'status' => 'menunggu_pembayaran',
+        'payment_due_at' => now()->subMinute(),
+    ]);
+
+    $this->actingAs($this->customer)->get("/booking/{$booking->id}");
+
+    expect($booking->refresh()->status)->toBe('dibatalkan');
 });

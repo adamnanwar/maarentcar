@@ -28,6 +28,7 @@ class StoreBookingRequest extends FormRequest
             'end_datetime' => [Rule::requiredIf($isMobil), 'nullable', 'date', 'after:start_datetime'],
 
             'with_driver' => [Rule::requiredIf($isMobil), 'boolean'],
+            'ktp_photo' => [Rule::requiredIf($isMobil), 'nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'delivery_method' => ['required', Rule::in([
                 Booking::DELIVERY_PICKUP_AT_OFFICE,
                 Booking::DELIVERY_DELIVERED_TO_ADDRESS,
@@ -57,6 +58,9 @@ class StoreBookingRequest extends FormRequest
             'full_address.required' => 'Alamat lengkap wajib diisi untuk metode pengambilan ini.',
             'recipient_name.required' => 'Nama penerima wajib diisi.',
             'address_phone.required' => 'Nomor telepon wajib diisi.',
+            'ktp_photo.required' => 'Foto KTP wajib diunggah sebagai jaminan sewa mobil.',
+            'ktp_photo.mimes' => 'Foto KTP harus berformat JPG, PNG, atau PDF.',
+            'ktp_photo.max' => 'Ukuran foto KTP maksimal 5MB.',
         ];
     }
 }

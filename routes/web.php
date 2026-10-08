@@ -85,6 +85,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/booking/{booking}/batalkan', [BookingController::class, 'cancel'])->name('booking.cancel');
     Route::post('/booking/{booking}/pembayaran', [PaymentController::class, 'store'])->name('booking.payment.store');
     Route::get('/booking/{booking}/pembayaran/{payment}/bukti', [PaymentController::class, 'showProof'])->name('booking.payment.proof');
+    Route::get('/booking/{booking}/ktp', [BookingController::class, 'showKtp'])->name('booking.ktp');
 
     Route::get('/booking/{booking}/ulasan/tulis', [ReviewController::class, 'create'])->name('ulasan.create');
     Route::post('/booking/{booking}/ulasan', [ReviewController::class, 'store'])->name('ulasan.store');

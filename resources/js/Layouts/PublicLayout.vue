@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import NotificationBell from '@/components/NotificationBell.vue';
 import { Button } from '@/components/ui/button';
 import type { AppPageProps } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
@@ -66,25 +67,29 @@ function logout() {
                     </Link>
                 </nav>
 
-                <div class="hidden items-center gap-3 md:flex">
-                    <template v-if="page.props.auth.user">
-                        <Link href="/dashboard" class="text-sm font-medium text-muted-foreground hover:text-primary">Dashboard</Link>
-                        <Button variant="outline" size="sm" @click="logout">Keluar</Button>
-                    </template>
-                    <template v-else>
-                        <Link href="/login">
-                            <Button variant="outline" size="sm">Masuk</Button>
-                        </Link>
-                        <Link href="/register">
-                            <Button size="sm">Daftar</Button>
-                        </Link>
-                    </template>
-                </div>
+                <div class="flex items-center gap-2">
+                    <NotificationBell v-if="page.props.auth.user" />
 
-                <button class="md:hidden" @click="mobileOpen = !mobileOpen">
-                    <Menu v-if="!mobileOpen" class="h-6 w-6" />
-                    <X v-else class="h-6 w-6" />
-                </button>
+                    <div class="hidden items-center gap-3 md:flex">
+                        <template v-if="page.props.auth.user">
+                            <Link href="/dashboard" class="text-sm font-medium text-muted-foreground hover:text-primary">Dashboard</Link>
+                            <Button variant="outline" size="sm" @click="logout">Keluar</Button>
+                        </template>
+                        <template v-else>
+                            <Link href="/login">
+                                <Button variant="outline" size="sm">Masuk</Button>
+                            </Link>
+                            <Link href="/register">
+                                <Button size="sm">Daftar</Button>
+                            </Link>
+                        </template>
+                    </div>
+
+                    <button class="md:hidden" @click="mobileOpen = !mobileOpen">
+                        <Menu v-if="!mobileOpen" class="h-6 w-6" />
+                        <X v-else class="h-6 w-6" />
+                    </button>
+                </div>
             </div>
 
             <div v-if="mobileOpen" class="border-t border-border px-4 pb-4 md:hidden">

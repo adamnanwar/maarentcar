@@ -24,6 +24,8 @@ class AdminBookingController extends Controller implements HasMiddleware
 
     public function index(Request $request): Response
     {
+        Booking::sweepOverduePayments();
+
         $query = Booking::query()->with(['user', 'vehicle', 'package']);
 
         if ($search = $request->string('search')->trim()->value()) {
@@ -49,6 +51,8 @@ class AdminBookingController extends Controller implements HasMiddleware
 
     public function show(Booking $booking): Response
     {
+        $booking->expireIfOverdue();
+
         $booking->load(['user', 'vehicle.images', 'package', 'destinations.destination', 'payments.verifications.verifiedBy', 'statusLogs.changedBy']);
 
         return Inertia::render('Admin/Booking/Show', ['booking' => $booking]);

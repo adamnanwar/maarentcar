@@ -14,6 +14,10 @@ class PaymentController extends Controller
     public function store(Request $request, Booking $booking): RedirectResponse
     {
         abort_unless($booking->user_id === $request->user()->id, 403);
+
+        $expired = $booking->expireIfOverdue();
+
+        abort_if($expired, 403, 'Batas waktu 1 jam pembayaran untuk booking ini telah lewat dan pesanan sudah dibatalkan otomatis.');
         abort_unless($booking->status === Booking::STATUS_MENUNGGU_PEMBAYARAN, 403, 'Booking ini tidak dalam status menunggu pembayaran.');
 
         $data = $request->validate([
