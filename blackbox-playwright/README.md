@@ -111,21 +111,22 @@ blackbox-playwright/
 
 ## Skenario yang gagal (temuan bug nyata aplikasi)
 
-Empat skenario di `hasil.md` berstatus **GAGAL** bukan karena skrip ujinya
-salah, melainkan karena aplikasi memang berperilaku tidak sesuai ekspektasi
-dokumen test case. Rinciannya ada di kolom "Catatan" masing-masing baris di
+Skenario di `hasil.md` berstatus **GAGAL** bukan karena skrip ujinya salah,
+melainkan karena aplikasi memang berperilaku tidak sesuai ekspektasi dokumen
+test case. Rinciannya ada di kolom "Catatan" masing-masing baris di
 `hasil.md`/`manifest.json`; ringkasannya:
 
-| ID | Temuan |
-|---|---|
-| `BB-11-01` | Menonaktifkan akun pelanggan/staff di panel admin tidak benar-benar memblokir login - `AuthController@login` tidak pernah memeriksa kolom `status`. |
-| `BB-13-02` | Mengubah "Judul Hero" di halaman Pengaturan tidak berpengaruh ke Beranda - `HomeController` tidak mengirim setting tsb dan `Home.vue` memakai teks statis. |
-| `BB-14-02` | Tombol "Ekspor CSV" di halaman Laporan selalu menghasilkan HTTP 500 - `AdminReportController::export()` salah mendeklarasikan tipe kembalian method (`Illuminate\Http\Response` padahal mengembalikan `StreamedResponse`). |
-| `BB-19-04` | Dua pelanggan berbeda bisa mendapat pesanan mobil pada mobil & tanggal yang identik selama keduanya belum mengunggah bukti transfer - `Vehicle::isAvailableFor()` tidak menghitung status `menunggu_pembayaran` sebagai penahan tanggal. |
+| ID | Temuan | Status |
+|---|---|---|
+| `BB-11-01` | Menonaktifkan akun pelanggan/staff di panel admin tidak benar-benar memblokir login - `AuthController@login` tidak pernah memeriksa kolom `status`. | Belum diperbaiki |
+| `BB-13-02` | Mengubah "Judul Hero" di halaman Pengaturan tidak berpengaruh ke Beranda - `HomeController` tidak mengirim setting tsb dan `Home.vue` memakai teks statis. | Belum diperbaiki |
+| `BB-14-02` | Tombol "Ekspor CSV" di halaman Laporan selalu menghasilkan HTTP 500 - `AdminReportController::export()` salah mendeklarasikan tipe kembalian method (`Illuminate\Http\Response` padahal mengembalikan `StreamedResponse`). | **Diperbaiki (2026-10-10)** |
+| `BB-19-04` | Dua pelanggan berbeda bisa mendapat pesanan mobil pada mobil & tanggal yang identik selama keduanya belum mengunggah bukti transfer - `Vehicle::isAvailableFor()` tidak menghitung status `menunggu_pembayaran` sebagai penahan tanggal. | Belum diperbaiki |
 
 Sesuai aturan pada dokumen test case ("jangan mengubah kode aplikasi tanpa
-persetujuan"), keempatnya **tidak diperbaiki** sebagai bagian dari pembuatan
-suite ini.
+persetujuan"), yang belum diperbaiki sengaja tidak disentuh sebagai bagian
+dari pembuatan suite ini; `BB-14-02` diperbaiki atas permintaan eksplisit
+pemilik produk setelahnya.
 
 ## Skenario baru di luar 63 skenario awal
 

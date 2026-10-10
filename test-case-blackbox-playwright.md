@@ -219,7 +219,7 @@ Format ID: `BB-<nomor tabel dua digit>-<urutan dua digit>`. Kolom *Tabel* mengac
 | ID | Skenario | Test Case (langkah) | Ekspektasi | Catatan teknis / foto |
 |---|---|---|---|---|
 | `BB-14-01` | Memfilter rentang tanggal | Admin memilih tanggal dari-sampai, klik Terapkan | Sistem menampilkan data laporan sesuai rentang tanggal | Isi tanggal dari–sampai (rentang yang ada datanya). Foto laporan terfilter. |
-| `BB-14-02` | Mengekspor laporan | Admin klik Ekspor CSV | Berkas CSV laporan berhasil terunduh | Gunakan `page.waitForEvent("download")`. Foto halaman setelah klik + catat nama/ukuran file di laporan. Pastikan file terunduh (>0 byte). **Catatan hasil pengujian: skenario ini GAGAL di implementasi saat ini** - endpoint ekspor selalu error HTTP 500 (TypeError tipe kembalian method `AdminReportController::export()` salah). |
+| `BB-14-02` | Mengekspor laporan | Admin klik Ekspor CSV | Berkas CSV laporan berhasil terunduh | Gunakan `page.waitForEvent("download")`. Foto halaman setelah klik + catat nama/ukuran file di laporan. Pastikan file terunduh (>0 byte). **Diperbaiki (2026-10-10):** sempat GAGAL karena `AdminReportController::export()` salah mendeklarasikan tipe kembalian method (`Illuminate\Http\Response`, padahal `response()->streamDownload()` mengembalikan `Symfony\Component\HttpFoundation\StreamedResponse`); sudah dikoreksi dan sekarang lolos. |
 
 ### Tabel 5.15 — Pengujian Registrasi Akun
 

@@ -1,8 +1,8 @@
 # Hasil Pengujian Blackbox — We Rent Car
 
-Dihasilkan otomatis oleh suite Playwright pada 2026-10-07T12:36:10.843Z.
+Dihasilkan otomatis oleh suite Playwright pada 2026-10-10T11:17:10.204Z.
 
-Total skenario: **71** — Lolos: **67** · Gagal: **4** · Perlu foto manual: **0**
+Total skenario: **71** — Lolos: **68** · Gagal: **3** · Perlu foto manual: **0**
 
 | ID | Status | Berkas | Catatan |
 |---|---|---|---|
@@ -39,8 +39,8 @@ Total skenario: **71** — Lolos: **67** · Gagal: **4** · Perlu foto manual: *
 | BB-12-03 | Lolos | `BB-12-03-a.png`, `BB-12-03-b.png` | Perubahan centang permission "Hapus data mobil" untuk role staff berhasil disimpan (lalu dikembalikan ke kondisi semula). |
 | BB-13-01 | Lolos | `BB-13-01.png` | Perubahan nomor rekening bank tersimpan (nilai semula dikembalikan setelah pengecekan). |
 | BB-13-02 | GAGAL | `BB-13-02-a.png`, `BB-13-02-b.png` | GAGAL (temuan bug nyata, bukan masalah skrip uji): judul hero berhasil tersimpan di halaman Pengaturan (muncul notifikasi sukses), tetapi perubahan itu TIDAK tampil sama sekali di halaman Beranda publik. Penyebab: HomeController@index (app/Http/Controllers/HomeController.php) tidak pernah mengambil/mengirim setting "homepage_hero_title" atau "homepage_hero_subtitle" ke halaman Home, dan resources/js/pages/Home.vue menampilkan judul hero sebagai teks statis ("Jelajahi Batam, Tanpa Ribet") yang di-hardcode, bukan dari data pengaturan. Field pengaturan ini saat ini tidak berfungsi sama sekali bagi pengunjung. Tidak diperbaiki di sini sesuai aturan "jangan mengubah kode aplikasi tanpa persetujuan" - perlu keputusan pemilik produk apakah homepage perlu dihubungkan ke setting ini atau field ini sebaiknya dihapus dari halaman Pengaturan. |
-| BB-14-01 | Lolos | `BB-14-01.png` | Laporan menampilkan data sesuai rentang tanggal 2026-09-07 s.d. 2026-10-07. |
-| BB-14-02 | GAGAL | `BB-14-02.png` | GAGAL (temuan bug nyata, bukan masalah skrip uji): klik "Ekspor CSV" menghasilkan HTTP 500 Internal Server Error, bukan file terunduh. Penyebab: AdminReportController::export() (app/Http/Controllers/Admin/AdminReportController.php baris 39-51) mendeklarasikan tipe kembalian "Illuminate\Http\Response", padahal isi methodnya mengembalikan response()->streamDownload(...) yang sebenarnya bertipe Symfony\Component\HttpFoundation\StreamedResponse - bukan turunan dari Illuminate\Http\Response. PHP melempar TypeError fatal setiap kali endpoint ini diakses, sehingga fitur ekspor laporan sama sekali tidak berfungsi saat ini. Tidak diperbaiki di sini sesuai aturan "jangan mengubah kode aplikasi tanpa persetujuan" - perbaikannya cukup sederhana (ganti tipe kembalian method menjadi Symfony\Component\HttpFoundation\StreamedResponse atau hapus deklarasi tipe), tapi perlu persetujuan pemilik produk. |
+| BB-14-01 | Lolos | `BB-14-01.png` | Laporan menampilkan data sesuai rentang tanggal 2026-09-10 s.d. 2026-10-10. |
+| BB-14-02 | Lolos | `BB-14-02.png` | Berkas CSV berhasil terunduh: laporan-pendapatan.csv. |
 | BB-15-01 | Lolos | `BB-15-01.png` | Registrasi dengan data valid berhasil, akun otomatis masuk. Catatan: redirect sesungguhnya menuju Dashboard Pelanggan (/dashboard), bukan Beranda seperti disebut pada dokumen test case awal - deskripsi skenario sudah diperbarui agar sesuai perilaku nyata aplikasi (lihat juga activity-flow.md modul 1.1). |
 | BB-15-02 | Lolos | `BB-15-02.png` | Pesan validasi email sudah terdaftar tampil. Catatan: proyek belum punya berkas bahasa Indonesia untuk pesan validasi Laravel bawaan, sehingga teksnya berbahasa Inggris ("The email has already been taken.") meskipun APP_LOCALE=id. |
 | BB-15-03 | Lolos | `BB-15-03.png` | Field email dikosongkan, dicegah lewat validasi bawaan browser (atribut "required"). Pesan browser: "Please fill out this field.". |

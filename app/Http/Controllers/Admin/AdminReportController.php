@@ -8,13 +8,13 @@ use App\Models\Payment;
 use App\Models\TourPackage;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminReportController extends Controller implements HasMiddleware
 {
@@ -36,7 +36,7 @@ class AdminReportController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function export(Request $request): HttpResponse
+    public function export(Request $request): StreamedResponse
     {
         [$from, $to] = $this->range($request);
         $daily = $this->dailyRevenue($from, $to);

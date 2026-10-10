@@ -58,3 +58,11 @@ test('admin sees revenue that matches verified payments', function () {
             ->where('stats.total_bookings', 1)
         );
 });
+
+test('admin can export the report as csv', function () {
+    $response = $this->actingAs($this->admin)->get('/admin/laporan/ekspor');
+
+    $response->assertOk();
+    $response->assertHeader('content-type', 'text/csv; charset=utf-8');
+    expect($response->streamedContent())->toContain('Tanggal,Pendapatan');
+});
