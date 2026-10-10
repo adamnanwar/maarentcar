@@ -96,6 +96,15 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'prefer',
+            // Paksa sesi PostgreSQL selalu UTC, apapun timezone default server/OS-nya.
+            // Tanpa ini, PHP (Carbon, selalu UTC) dan Postgres bisa beda timezone sesi
+            // (mis. server lokal default ke timezone OS seperti Asia/Bangkok), sehingga
+            // nilai datetime yang dikirim Laravel tanpa offset eksplisit disalahartikan
+            // Postgres sebagai jam lokal - menggeser timestamp yang tersimpan sejumlah
+            // selisih timezone-nya. Ini yang menyebabkan payment_due_at booking
+            // tersimpan beberapa jam SEBELUM waktu sebenarnya di instalasi yang
+            // timezone PostgreSQL-nya bukan UTC.
+            'timezone' => 'UTC',
         ],
 
         'sqlsrv' => [

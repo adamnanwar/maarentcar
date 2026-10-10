@@ -128,6 +128,23 @@ persetujuan"), yang belum diperbaiki sengaja tidak disentuh sebagai bagian
 dari pembuatan suite ini; `BB-14-02` diperbaiki atas permintaan eksplisit
 pemilik produk setelahnya.
 
+### Temuan tambahan di luar suite ini: timezone koneksi PostgreSQL
+
+Ditemukan dari laporan pengguna (bukan dari suite ini - komputer tempat suite
+ini dikembangkan kebetulan timezone PostgreSQL-nya sudah UTC, jadi tidak
+pernah terdeteksi di sini), lalu diperbaiki 2026-10-10: koneksi `pgsql` di
+`config/database.php` tidak pernah memaksa timezone sesi ke UTC. Di instalasi
+yang timezone server/OS PostgreSQL-nya BUKAN UTC (mis. `Asia/Bangkok`),
+timestamp yang dikirim Laravel (selalu UTC lewat Carbon) disalahartikan
+PostgreSQL sebagai jam dalam timezone sesi tsb, sehingga bergeser sejumlah
+selisih zona waktunya saat tersimpan. Ini membuat `payment_due_at` booking
+baru langsung dianggap kedaluwarsa dalam hitungan detik di laptop dengan
+timezone PostgreSQL non-UTC. Perbaikan: tambah `'timezone' => 'UTC'` pada
+konfigurasi koneksi `pgsql`, memaksa `SET TIME ZONE 'UTC'` di setiap koneksi
+baru apa pun default server-nya. Regresi dijaga lewat test baru
+`a freshly created booking payment deadline is genuinely about 1 hour in the
+future` di `tests/Feature/BookingFlowTest.php`.
+
 ## Skenario baru di luar 63 skenario awal
 
 Selama penelusuran kode untuk menulis suite ini, ditemukan beberapa fitur

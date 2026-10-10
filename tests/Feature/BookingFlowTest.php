@@ -255,3 +255,27 @@ test('unpaid vehicle booking is cancelled automatically after the 1 hour payment
 
     expect($booking->refresh()->status)->toBe('dibatalkan');
 });
+
+test('a freshly created booking payment deadline is genuinely about 1 hour in the future', function () {
+    // Regresi: jika koneksi database tidak dipaksa UTC (lihat config/database.php
+    // pgsql.timezone), PostgreSQL bisa menginterpretasikan timestamp yang dikirim
+    // Laravel memakai timezone sesi server/OS-nya sendiri (mis. Asia/Bangkok),
+    // sehingga payment_due_at yang seharusnya "1 jam ke depan" malah tersimpan
+    // beberapa jam ke BELAKANG dan booking langsung dianggap kedaluwarsa.
+    $this->actingAs($this->customer)->post('/booking', [
+        'booking_type' => 'mobil',
+        'vehicle_id' => $this->vehicle->id,
+        'start_datetime' => now()->addDay()->format('Y-m-d\TH:i'),
+        'end_datetime' => now()->addDays(2)->format('Y-m-d\TH:i'),
+        'with_driver' => false,
+        'delivery_method' => 'pickup_at_office',
+        'ktp_photo' => UploadedFile::fake()->create('ktp.jpg', 100, 'image/jpeg'),
+    ]);
+
+    $booking = Booking::firstOrFail();
+
+    expect($booking->status)->toBe('menunggu_pembayaran');
+    expect($booking->payment_due_at->isFuture())->toBeTrue();
+    expect(now()->diffInMinutes($booking->payment_due_at, false))->toBeGreaterThan(55)
+        ->toBeLessThan(65);
+});
