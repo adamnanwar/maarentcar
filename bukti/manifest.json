@@ -405,15 +405,15 @@
       "BB-19-03-a.png",
       "BB-19-03-b.png"
     ],
-    "catatan": "Pesanan WRC-261007-ZHBPU berhasil dibuat dan diarahkan ke halaman pembayaran."
+    "catatan": "Pesanan WRC-261010-BJMPW berhasil dibuat dan diarahkan ke halaman pembayaran."
   },
   {
     "id": "BB-19-04",
-    "status": "gagal",
+    "status": "lolos",
     "files": [
       "BB-19-04.png"
     ],
-    "catatan": "GAGAL (temuan bug nyata, bukan masalah skrip uji): pesanan kedua tetap berhasil dibuat meskipun tanggal & mobilnya persis bentrok dengan booking pelanggan lain. Penyebab: Vehicle::isAvailableFor() di app/Models/Vehicle.php baris 84 hanya menganggap status \"menunggu_verifikasi\", \"dikonfirmasi\", dan \"berlangsung\" sebagai penahan tanggal - booking berstatus \"menunggu_pembayaran\" (yaitu, belum ada bukti transfer sama sekali) tidak ikut dihitung. Akibatnya dua pelanggan berbeda bisa sama-sama mendapat pesanan \"menunggu_pembayaran\" untuk mobil & tanggal yang identik, dan berpotensi lolos sampai tahap verifikasi admin tanpa ada pengecekan silang. Ini murni temuan analisis blackbox - tidak diperbaiki di sini sesuai aturan \"jangan mengubah kode aplikasi tanpa persetujuan\"; perlu keputusan pemilik produk apakah status menunggu_pembayaran juga harus ikut memblokir tanggal."
+    "catatan": "Mobil yang sama pada tanggal bentrok ditolak sistem seperti yang diharapkan."
   },
   {
     "id": "BB-19-05",
@@ -447,7 +447,7 @@
       "BB-20-02-a.png",
       "BB-20-02-b.png"
     ],
-    "catatan": "Pesanan paket wisata WRC-261007-CRULX berhasil dibuat dan diarahkan ke halaman pembayaran."
+    "catatan": "Pesanan paket wisata WRC-261010-VLBP0 berhasil dibuat dan diarahkan ke halaman pembayaran."
   },
   {
     "id": "BB-20-03",

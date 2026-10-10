@@ -86,8 +86,37 @@ function back() {
     step.value = Math.max(1, step.value - 1);
 }
 
+const fieldStep: Record<string, number> = {
+    start_datetime: 1,
+    end_datetime: 1,
+    with_driver: 2,
+    delivery_method: 2,
+    destination_ids: 2,
+    recipient_name: 2,
+    address_phone: 2,
+    full_address: 2,
+    district: 2,
+    subdistrict: 2,
+    landmark: 2,
+    ktp_photo: 3,
+    passenger_count: 4,
+    notes: 4,
+};
+
 function submit() {
-    form.post('/booking', { forceFormData: true });
+    form.post('/booking', {
+        forceFormData: true,
+        onError: (errors) => {
+            // Form adalah wizard multi-langkah dengan step tersimpan di state lokal,
+            // jadi redirect-dengan-error dari Inertia tidak otomatis membawa pengguna
+            // kembali ke langkah yang bermasalah. Tanpa ini, pesan error di langkah
+            // sebelumnya (mis. KTP tidak valid, tanggal bentrok) tidak akan terlihat
+            // sama sekali dan tombol "Buat Pesanan" terasa seperti macet.
+            const firstErrorField = Object.keys(errors)[0];
+            const targetStep = fieldStep[firstErrorField];
+            if (targetStep) step.value = targetStep;
+        },
+    });
 }
 
 const requiresAddress = computed(() => form.delivery_method !== 'pickup_at_office');

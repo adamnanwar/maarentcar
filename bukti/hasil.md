@@ -1,8 +1,8 @@
 # Hasil Pengujian Blackbox — We Rent Car
 
-Dihasilkan otomatis oleh suite Playwright pada 2026-10-10T11:17:10.204Z.
+Dihasilkan otomatis oleh suite Playwright pada 2026-10-10T12:34:59.466Z.
 
-Total skenario: **71** — Lolos: **68** · Gagal: **3** · Perlu foto manual: **0**
+Total skenario: **71** — Lolos: **69** · Gagal: **2** · Perlu foto manual: **0**
 
 | ID | Status | Berkas | Catatan |
 |---|---|---|---|
@@ -54,12 +54,12 @@ Total skenario: **71** — Lolos: **68** · Gagal: **3** · Perlu foto manual: *
 | BB-18-03 | Lolos | `BB-18-03.png` | Detail mobil menampilkan spesifikasi lengkap beserta bagian Ulasan Pelanggan. |
 | BB-19-01 | Lolos | `BB-19-01.png` | Jadwal sewa tersimpan di wizard, sistem menghitung durasi & subtotal, lanjut ke Langkah 2. |
 | BB-19-02 | Lolos | `BB-19-02-a.png`, `BB-19-02-b.png` | Memilih "Dengan Supir" menampilkan biaya tambahan supir dan form alamat penjemputan yang tidak muncul pada pilihan "Lepas Kunci". |
-| BB-19-03 | Lolos | `BB-19-03-a.png`, `BB-19-03-b.png` | Pesanan WRC-261007-ZHBPU berhasil dibuat dan diarahkan ke halaman pembayaran. |
-| BB-19-04 | GAGAL | `BB-19-04.png` | GAGAL (temuan bug nyata, bukan masalah skrip uji): pesanan kedua tetap berhasil dibuat meskipun tanggal & mobilnya persis bentrok dengan booking pelanggan lain. Penyebab: Vehicle::isAvailableFor() di app/Models/Vehicle.php baris 84 hanya menganggap status "menunggu_verifikasi", "dikonfirmasi", dan "berlangsung" sebagai penahan tanggal - booking berstatus "menunggu_pembayaran" (yaitu, belum ada bukti transfer sama sekali) tidak ikut dihitung. Akibatnya dua pelanggan berbeda bisa sama-sama mendapat pesanan "menunggu_pembayaran" untuk mobil & tanggal yang identik, dan berpotensi lolos sampai tahap verifikasi admin tanpa ada pengecekan silang. Ini murni temuan analisis blackbox - tidak diperbaiki di sini sesuai aturan "jangan mengubah kode aplikasi tanpa persetujuan"; perlu keputusan pemilik produk apakah status menunggu_pembayaran juga harus ikut memblokir tanggal. |
+| BB-19-03 | Lolos | `BB-19-03-a.png`, `BB-19-03-b.png` | Pesanan WRC-261010-BJMPW berhasil dibuat dan diarahkan ke halaman pembayaran. |
+| BB-19-04 | Lolos | `BB-19-04.png` | Mobil yang sama pada tanggal bentrok ditolak sistem seperti yang diharapkan. |
 | BB-19-05 | Lolos | `BB-19-05-a.png`, `BB-19-05-b.png` | Skenario baru: tombol Lanjut nonaktif sebelum KTP diunggah, aktif kembali setelah foto KTP dipilih. |
 | BB-19-06 | Lolos | `BB-19-06.png` | Skenario baru: pelanggan yang masih punya sewa mobil aktif diarahkan kembali ke booking lamanya beserta pesan peringatan, tidak diizinkan membuka wizard mobil lain. |
 | BB-20-01 | Lolos | `BB-20-01.png` | Jadwal keberangkatan dan alamat penjemputan tersimpan, sistem menampilkan ringkasan harga tetap paket. |
-| BB-20-02 | Lolos | `BB-20-02-a.png`, `BB-20-02-b.png` | Pesanan paket wisata WRC-261007-CRULX berhasil dibuat dan diarahkan ke halaman pembayaran. |
+| BB-20-02 | Lolos | `BB-20-02-a.png`, `BB-20-02-b.png` | Pesanan paket wisata WRC-261010-VLBP0 berhasil dibuat dan diarahkan ke halaman pembayaran. |
 | BB-20-03 | Lolos | `BB-20-03.png` | Skenario baru: pelanggan yang sudah memiliki pesanan paket wisata aktif mendapat dialog konfirmasi sebelum melanjutkan memesan paket lain. Memilih Batal membatalkan niat pesan dan kembali ke halaman detail paket. |
 | BB-21-01 | Lolos | `BB-21-01-a.png`, `BB-21-01-b.png` | Bukti transfer valid tersimpan, status booking berubah menjadi Menunggu Verifikasi. |
 | BB-21-02 | Lolos | `BB-21-02.png` | Berkas .txt ditolak validasi format, status booking tetap Menunggu Pembayaran. |

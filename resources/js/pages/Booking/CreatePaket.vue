@@ -71,8 +71,30 @@ function back() {
     step.value = Math.max(1, step.value - 1);
 }
 
+const fieldStep: Record<string, number> = {
+    start_datetime: 1,
+    passenger_count: 1,
+    delivery_method: 2,
+    recipient_name: 2,
+    address_phone: 2,
+    full_address: 2,
+    district: 2,
+    subdistrict: 2,
+    landmark: 2,
+    notes: 3,
+};
+
 function submit() {
-    form.post('/booking');
+    form.post('/booking', {
+        onError: (errors) => {
+            // Lihat catatan serupa di CreateMobil.vue: wizard ini pakai step lokal,
+            // jadi redirect-dengan-error Inertia tidak otomatis membawa pengguna
+            // kembali ke langkah yang bermasalah tanpa ini.
+            const firstErrorField = Object.keys(errors)[0];
+            const targetStep = fieldStep[firstErrorField];
+            if (targetStep) step.value = targetStep;
+        },
+    });
 }
 </script>
 
