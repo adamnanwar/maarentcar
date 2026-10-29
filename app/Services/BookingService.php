@@ -7,6 +7,7 @@ use App\Models\Destination;
 use App\Models\TourPackage;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Notifications\BookingStatusChangedNotification;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -94,6 +95,8 @@ class BookingService
                 'note' => 'Booking dibuat oleh pelanggan.',
             ]);
 
+            $user->notify(new BookingStatusChangedNotification($booking));
+
             return $booking;
         });
     }
@@ -148,6 +151,8 @@ class BookingService
                 'changed_by' => $user->id,
                 'note' => 'Booking paket wisata dibuat oleh pelanggan.',
             ]);
+
+            $user->notify(new BookingStatusChangedNotification($booking));
 
             return $booking;
         });

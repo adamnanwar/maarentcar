@@ -210,7 +210,7 @@ const requiresAddress = computed(() => form.delivery_method !== 'pickup_at_offic
                         <div class="grid max-h-48 grid-cols-1 gap-2 overflow-y-auto rounded-md border border-input p-3 sm:grid-cols-2">
                             <label v-for="destination in destinations" :key="destination.id" class="flex items-center gap-2 text-sm">
                                 <input v-model="form.destination_ids" type="checkbox" :value="destination.id" class="rounded border-input" />
-                                {{ destination.name }} (+{{ formatCurrency(destination.addon_price) }})
+                                {{ destination.name }} (+{{ formatCurrency(destination.addon_price) }}/mobil)
                             </label>
                         </div>
                     </div>
