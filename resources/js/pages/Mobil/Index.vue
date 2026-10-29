@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { formatCurrency, paginationLabel } from '@/lib/utils';
 import type { Paginated } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { watchDebounced } from '@vueuse/core';
-import { Settings2, Users } from 'lucide-vue-next';
-import { reactive } from 'vue';
+import { CalendarClock, CarFront, Settings2, Users, X } from 'lucide-vue-next';
+import { computed, reactive, ref } from 'vue';
 
 interface Vehicle {
     id: number;
@@ -17,6 +18,7 @@ interface Vehicle {
     price_per_day: number;
     category: { id: number; name: string };
     images: { id: number; image_path: string }[];
+    is_available: boolean;
 }
 
 interface Category {
@@ -28,6 +30,8 @@ const props = defineProps<{
     vehicles: Paginated<Vehicle>;
     categories: Category[];
     filters: Record<string, string | number | null>;
+    availableCount: number;
+    availabilityDate: string;
 }>();
 
 const filters = reactive({
@@ -35,7 +39,12 @@ const filters = reactive({
     category_id: props.filters.category_id ?? '',
     transmission: props.filters.transmission ?? '',
     seats: props.filters.seats ?? '',
+    date: props.filters.date ?? '',
+    time_start: props.filters.time_start ?? '',
+    time_end: props.filters.time_end ?? '',
 });
+
+const showAvailabilityFilter = ref(Boolean(props.filters.date));
 
 watchDebounced(
     filters,
@@ -48,14 +57,37 @@ watchDebounced(
 function selectCategory(id: number | string) {
     filters.category_id = id;
 }
+
+function resetAvailabilityFilter() {
+    filters.date = '';
+    filters.time_start = '';
+    filters.time_end = '';
+}
+
+const availabilityLabel = computed(() => {
+    const [year, month, day] = props.availabilityDate.split('-');
+    const formatted = `${day}/${month}/${year}`;
+    return filters.date ? `pada ${formatted}` : 'hari ini';
+});
 </script>
 
 <template>
     <Head title="Katalog Mobil" />
     <PublicLayout>
         <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <h1 class="text-2xl font-bold text-foreground">Pilih Armada Anda</h1>
-            <p class="mt-1 text-muted-foreground">Armada premium untuk setiap perjalanan. Pilih mobil sesuai kebutuhan Anda.</p>
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-foreground">Pilih Armada Anda</h1>
+                    <p class="mt-1 text-muted-foreground">Armada premium untuk setiap perjalanan. Pilih mobil sesuai kebutuhan Anda.</p>
+                </div>
+                <div class="flex items-center gap-2 rounded-xl border border-primary/30 bg-secondary px-4 py-3">
+                    <CarFront class="h-5 w-5 text-primary" />
+                    <div class="text-sm">
+                        <p class="font-bold text-primary">Tersedia: {{ availableCount }} Unit</p>
+                        <p class="text-xs text-muted-foreground">{{ availabilityLabel }}</p>
+                    </div>
+                </div>
+            </div>
 
             <div class="mt-6 flex flex-wrap gap-2">
                 <button
@@ -82,7 +114,7 @@ function selectCategory(id: number | string) {
                 </button>
             </div>
 
-            <div class="mt-4 grid gap-3 sm:grid-cols-3">
+            <div class="mt-4 grid gap-3 sm:grid-cols-4">
                 <Input v-model="filters.search" placeholder="Cari nama mobil..." />
                 <select v-model="filters.transmission" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                     <option value="">Semua Transmisi</option>
@@ -95,6 +127,46 @@ function selectCategory(id: number | string) {
                     <option value="7">Min. 7 kursi</option>
                     <option value="12">Min. 12 kursi</option>
                 </select>
+                <Button
+                    type="button"
+                    variant="outline"
+                    class="h-10 gap-1.5"
+                    :class="filters.date ? 'border-primary text-primary' : ''"
+                    @click="showAvailabilityFilter = !showAvailabilityFilter"
+                >
+                    <CalendarClock class="h-4 w-4" />
+                    Filter Ketersediaan Unit
+                </Button>
+            </div>
+
+            <div v-if="filters.date" class="mt-2 flex">
+                <button
+                    type="button"
+                    class="flex items-center gap-1 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-destructive"
+                    @click="resetAvailabilityFilter"
+                >
+                    {{ availabilityLabel }}
+                    <X class="h-3 w-3" />
+                </button>
+            </div>
+
+            <div v-if="showAvailabilityFilter" class="mt-3 grid gap-3 rounded-xl border border-border bg-background p-4 sm:grid-cols-3">
+                <div>
+                    <label class="text-xs font-medium text-muted-foreground">Tanggal</label>
+                    <input v-model="filters.date" type="date" class="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-muted-foreground">Jam Mulai (opsional)</label>
+                    <input v-model="filters.time_start" type="time" class="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-muted-foreground">Jam Selesai (opsional)</label>
+                    <input v-model="filters.time_end" type="time" class="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                </div>
+                <p class="text-xs text-muted-foreground sm:col-span-3">
+                    Pilih tanggal untuk menampilkan hanya mobil yang benar-benar tersedia pada rentang waktu tersebut. Jam bersifat opsional -
+                    tanpa jam, sistem mengecek ketersediaan untuk sepanjang hari itu.
+                </p>
             </div>
 
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -102,12 +174,14 @@ function selectCategory(id: number | string) {
                     v-for="vehicle in vehicles.data"
                     :key="vehicle.id"
                     :href="`/mobil/${vehicle.slug}`"
-                    class="group flex flex-col overflow-hidden rounded-xl border border-border bg-background transition-colors hover:border-primary"
+                    class="group flex flex-col overflow-hidden rounded-xl border border-border bg-background transition-colors"
+                    :class="
+                        vehicle.is_available
+                            ? 'hover:border-primary'
+                            : 'pointer-events-none grayscale opacity-60'
+                    "
                 >
                     <div class="relative h-48 bg-secondary p-6">
-                        <span class="absolute top-4 left-4 rounded-sm bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
-                            Tersedia
-                        </span>
                         <img
                             v-if="vehicle.images?.[0]"
                             :src="vehicle.images[0].image_path"
@@ -128,9 +202,18 @@ function selectCategory(id: number | string) {
                                 <span class="flex items-center gap-1 text-xs"><Users class="h-4 w-4" /> {{ vehicle.seat_capacity }} kursi</span>
                                 <span class="flex items-center gap-1 text-xs"><Settings2 class="h-4 w-4" /> {{ vehicle.transmission }}</span>
                             </div>
-                            <p class="font-bold text-primary">
-                                {{ formatCurrency(vehicle.price_per_day) }} <span class="text-xs font-normal text-muted-foreground">/hari</span>
-                            </p>
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="font-bold text-primary">
+                                    {{ formatCurrency(vehicle.price_per_day) }}
+                                    <span class="text-xs font-normal text-muted-foreground">/hari</span>
+                                </p>
+                                <span
+                                    class="rounded-sm px-2 py-1 text-xs font-medium"
+                                    :class="vehicle.is_available ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'"
+                                >
+                                    {{ vehicle.is_available ? 'Tersedia' : 'Tidak Tersedia' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </Link>

@@ -36,16 +36,37 @@ class VehicleController extends Controller
             $query->where('price_per_day', '<=', $maxPrice);
         }
 
+        $date = $request->string('date')->value() ?: null;
+        $timeStart = $request->string('time_start')->value() ?: null;
+        $timeEnd = $request->string('time_end')->value() ?: null;
+        [$windowStart, $windowEnd] = Vehicle::resolveAvailabilityWindow($date, $timeStart, $timeEnd);
+
+        // Filter hasil ke mobil yang tersedia hanya jika pelanggan secara aktif
+        // memilih tanggal (tombol filter ketersediaan). Tanpa itu katalog tetap
+        // menampilkan semua mobil aktif seperti biasa.
+        if ($date) {
+            $query->availableBetween($windowStart, $windowEnd);
+        }
+
         $vehicles = $query->orderBy('price_per_day')
             ->paginate(12)
             ->withQueryString();
 
-        $vehicles->getCollection()->transform(fn (Vehicle $vehicle) => $vehicle->makeHidden('plate_number'));
+        $availableIds = Vehicle::query()->availableBetween($windowStart, $windowEnd)->pluck('id')->all();
+
+        $vehicles->getCollection()->transform(function (Vehicle $vehicle) use ($availableIds) {
+            $vehicle->makeHidden('plate_number');
+            $vehicle->setAttribute('is_available', in_array($vehicle->id, $availableIds, true));
+
+            return $vehicle;
+        });
 
         return Inertia::render('Mobil/Index', [
             'vehicles' => $vehicles,
             'categories' => VehicleCategory::orderBy('name')->get(),
-            'filters' => $request->only(['search', 'category_id', 'transmission', 'seats', 'max_price']),
+            'filters' => $request->only(['search', 'category_id', 'transmission', 'seats', 'max_price', 'date', 'time_start', 'time_end']),
+            'availableCount' => count($availableIds),
+            'availabilityDate' => $windowStart->toDateString(),
         ]);
     }
 

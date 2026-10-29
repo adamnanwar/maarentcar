@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import NotificationBell from '@/components/NotificationBell.vue';
 import { Button } from '@/components/ui/button';
 import type { AppPageProps } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
@@ -98,12 +99,19 @@ function logout() {
         </aside>
 
         <div class="flex flex-1 flex-col md:pl-64">
+            <header class="hidden h-16 items-center justify-end border-b border-border bg-background px-4 sm:px-6 md:flex lg:px-8">
+                <NotificationBell />
+            </header>
+
             <header class="flex h-16 items-center justify-between border-b border-border bg-background px-4 md:hidden">
                 <span class="text-lg font-bold text-primary">We Rent Car</span>
-                <button @click="mobileOpen = !mobileOpen">
-                    <Menu v-if="!mobileOpen" class="h-6 w-6" />
-                    <X v-else class="h-6 w-6" />
-                </button>
+                <div class="flex items-center gap-1">
+                    <NotificationBell />
+                    <button @click="mobileOpen = !mobileOpen">
+                        <Menu v-if="!mobileOpen" class="h-6 w-6" />
+                        <X v-else class="h-6 w-6" />
+                    </button>
+                </div>
             </header>
 
             <div v-if="mobileOpen" class="space-y-1 bg-brand-navy p-3 text-white md:hidden">

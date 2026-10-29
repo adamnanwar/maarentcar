@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import RatingStars from '@/components/RatingStars.vue';
 import { formatCurrency } from '@/lib/utils';
-import { Head, Link } from '@inertiajs/vue3';
-import { Award, Headphones, MapPin, Settings2, ShieldCheck, Star, Users } from 'lucide-vue-next';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { Award, CalendarClock, CarFront, Headphones, MapPin, Settings2, ShieldCheck, Star, Users } from 'lucide-vue-next';
+import { reactive } from 'vue';
 
 interface VehicleImage {
     id: number;
@@ -21,6 +22,7 @@ interface Vehicle {
     price_per_day: number;
     images: VehicleImage[];
     category: { name: string };
+    is_available: boolean;
 }
 
 interface TourPackage {
@@ -52,7 +54,14 @@ defineProps<{
     featuredPackages: TourPackage[];
     popularDestinations: Destination[];
     testimonials: Testimonial[];
+    availableVehicleCount: number;
 }>();
+
+const availabilitySearch = reactive({ date: '', time_start: '', time_end: '' });
+
+function searchAvailability() {
+    router.get('/mobil', availabilitySearch, { preserveState: false });
+}
 
 const trustPoints = [
     { icon: ShieldCheck, title: 'Armada Terawat', desc: 'Seluruh mobil rutin diperiksa dan dirawat sebelum disewakan.' },
@@ -151,7 +160,51 @@ function initials(name: string) {
 
         <section class="py-16">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div class="mb-8 flex items-end justify-between border-b border-border pb-4">
+                <div class="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-secondary text-primary">
+                                <CarFront class="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p class="text-lg font-bold text-primary">Tersedia: {{ availableVehicleCount }} Unit</p>
+                                <p class="text-xs text-muted-foreground">Jumlah mobil yang bisa disewa hari ini.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <form class="mt-4 grid gap-3 sm:grid-cols-4" @submit.prevent="searchAvailability">
+                        <div>
+                            <label class="text-xs font-medium text-muted-foreground">Tanggal</label>
+                            <input
+                                v-model="availabilitySearch.date"
+                                type="date"
+                                class="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-muted-foreground">Jam Mulai</label>
+                            <input
+                                v-model="availabilitySearch.time_start"
+                                type="time"
+                                class="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-muted-foreground">Jam Selesai</label>
+                            <input
+                                v-model="availabilitySearch.time_end"
+                                type="time"
+                                class="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                            />
+                        </div>
+                        <Button type="submit" class="h-10 gap-1.5 self-end">
+                            <CalendarClock class="h-4 w-4" />
+                            Cek Ketersediaan Mobil
+                        </Button>
+                    </form>
+                </div>
+
+                <div class="mt-10 mb-8 flex items-end justify-between border-b border-border pb-4">
                     <div>
                         <h2 class="text-2xl font-bold text-foreground">Mobil Unggulan</h2>
                         <p class="mt-1 text-muted-foreground">Dirawat dengan teliti demi kenyamanan dan keamanan Anda.</p>
@@ -163,12 +216,14 @@ function initials(name: string) {
                         v-for="vehicle in featuredVehicles"
                         :key="vehicle.id"
                         :href="`/mobil/${vehicle.slug}`"
-                        class="group flex flex-col overflow-hidden rounded-xl border border-border bg-background transition-colors hover:border-primary"
+                        class="group flex flex-col overflow-hidden rounded-xl border border-border bg-background transition-colors"
+                        :class="
+                            vehicle.is_available
+                                ? 'hover:border-primary'
+                                : 'pointer-events-none grayscale opacity-60'
+                        "
                     >
                         <div class="relative h-48 bg-secondary p-6">
-                            <span class="absolute top-4 left-4 rounded-sm bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
-                                Tersedia
-                            </span>
                             <img
                                 v-if="vehicle.images?.[0]"
                                 :src="vehicle.images[0].image_path"
@@ -189,9 +244,18 @@ function initials(name: string) {
                                     <span class="flex items-center gap-1 text-xs"><Users class="h-4 w-4" /> {{ vehicle.seat_capacity }} kursi</span>
                                     <span class="flex items-center gap-1 text-xs"><Settings2 class="h-4 w-4" /> {{ vehicle.transmission }}</span>
                                 </div>
-                                <p class="font-bold text-primary">
-                                    {{ formatCurrency(vehicle.price_per_day) }} <span class="text-xs font-normal text-muted-foreground">/hari</span>
-                                </p>
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="font-bold text-primary">
+                                        {{ formatCurrency(vehicle.price_per_day) }}
+                                        <span class="text-xs font-normal text-muted-foreground">/hari</span>
+                                    </p>
+                                    <span
+                                        class="rounded-sm px-2 py-1 text-xs font-medium"
+                                        :class="vehicle.is_available ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'"
+                                    >
+                                        {{ vehicle.is_available ? 'Tersedia' : 'Tidak Tersedia' }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </Link>

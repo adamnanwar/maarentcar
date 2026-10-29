@@ -1,6 +1,6 @@
 # Hasil Pengujian Blackbox — We Rent Car
 
-Dihasilkan otomatis oleh suite Playwright pada 2026-10-10T12:34:59.466Z.
+Dihasilkan otomatis oleh suite Playwright pada 2026-10-26T02:26:25.617Z.
 
 Total skenario: **71** — Lolos: **69** · Gagal: **2** · Perlu foto manual: **0**
 

@@ -42,11 +42,17 @@ class HomeController extends Controller
             ->take(2)
             ->get();
 
+        [$todayStart, $todayEnd] = Vehicle::resolveAvailabilityWindow(null, null, null);
+        $availableIds = Vehicle::query()->availableBetween($todayStart, $todayEnd)->pluck('id')->all();
+
+        $vehicles->each(fn (Vehicle $vehicle) => $vehicle->setAttribute('is_available', in_array($vehicle->id, $availableIds, true)));
+
         return Inertia::render('Home', [
             'featuredVehicles' => $vehicles,
             'featuredPackages' => $packages,
             'popularDestinations' => $destinations,
             'testimonials' => $testimonials,
+            'availableVehicleCount' => count($availableIds),
         ]);
     }
 }
