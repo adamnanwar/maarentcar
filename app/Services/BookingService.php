@@ -4,9 +4,11 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\Destination;
+use App\Models\Role;
 use App\Models\TourPackage;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Notifications\AdminNewBookingNotification;
 use App\Notifications\BookingStatusChangedNotification;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
@@ -96,9 +98,17 @@ class BookingService
             ]);
 
             $user->notify(new BookingStatusChangedNotification($booking));
+            $this->notifyAdmins($booking);
 
             return $booking;
         });
+    }
+
+    protected function notifyAdmins(Booking $booking): void
+    {
+        User::whereHas('role', fn ($q) => $q->whereIn('name', [Role::ADMIN, Role::STAFF]))
+            ->get()
+            ->each(fn (User $admin) => $admin->notify(new AdminNewBookingNotification($booking)));
     }
 
     protected function assertNoActiveVehicleBooking(User $user): void
@@ -153,6 +163,7 @@ class BookingService
             ]);
 
             $user->notify(new BookingStatusChangedNotification($booking));
+            $this->notifyAdmins($booking);
 
             return $booking;
         });
